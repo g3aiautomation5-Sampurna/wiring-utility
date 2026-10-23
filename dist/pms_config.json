@@ -1,0 +1,13 @@
+{
+    "use_mac_as_serial": true,
+    "production_line_no": "1",
+    "jig_uid": "CGJIGxxxxxxxxxx00111",
+    "testing_stage": "X_POWER_SUPPLY_4Point3",
+    "slave_version_no": "4.3",
+    "default_apo_number_id": "56",
+    "table_report": "Z_VI_TEST",
+    "table_serial": "K_ALL_SERIAL_NUMBER",
+    "table_status": "E_DEVICE",
+    "pms_broker_ip": "127.0.0.1",
+    "pms_broker_port": 1883
+}

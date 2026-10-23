@@ -1,0 +1,18 @@
+{
+    "use_mac_as_serial": true,
+    "device_mac_override": "",
+    "pms_broker_ip": "192.168.1.100",
+    "pms_broker_port": 1883,
+    "pms_broker_username": "YOUR_USERNAME",
+    "pms_broker_password": "YOUR_PASSWORD",
+    "pms_publish_topic_prefix": "SELEC/PMS/SUB/G7",
+    "pms_subscribe_topic_prefix": "SELEC/PMS/PUB/G7",
+    "plc_jig_production_line_no": "1",
+    "jig_uid": "CGJIGxxxxxxxxxx00111",
+    "testing_stage": "X_POWER_SUPPLY_4Point3",
+    "slave_version_no": "4.3",
+    "default_apo_number_id": "56",
+    "table_serial_validation": "K_ALL_SERIAL_NUMBER",
+    "table_status_validation": "E_DEVICE",
+    "table_report_store": "Z_VI_TEST"
+}
