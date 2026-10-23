@@ -1,0 +1,22 @@
+# Dual-View Wiring & Origin Visual Inspection System
+# Core requirements for running the web application, GUI, and inspection modules
+
+# Computer Vision & Numerical Processing
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Web Application (web_wiring.py)
+Flask>=2.3.0
+
+# Desktop GUI & Image Display (gui_wiring.py)
+Pillow>=9.5.0
+
+# Excel Report Logging (Result/Inspection_Log.xlsx)
+openpyxl>=3.1.0
+
+# Industrial MQTT Integration for SELEC PMS (pms_mqtt.py)
+paho-mqtt>=1.6.1
+
+# Optional / Build & Model Dependencies
+# pyinstaller>=6.0.0     # Required only if building standalone web_wiring.exe
+# ultralytics>=8.0.0     # Required if running YOLOv8 models (yolov8n-pose.pt)
