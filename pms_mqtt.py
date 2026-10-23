@@ -12,6 +12,7 @@ from pms_json_manager import (
     load_or_create_config,
     get_pc_mac_address,
     get_thinclient_uid,
+    parse_sticker,
 )
 
 
@@ -407,6 +408,13 @@ class PMSMQTTClient:
 
         config = load_or_create_config()
         mac_id = get_pc_mac_address()
+
+        # Auto-parse if a full QR string (e.g. 'Id: ..; Sr: ..;') was passed as device_serial_no
+        if device_serial_no and any(k in str(device_serial_no).lower() for k in ["id:", "sr:"]):
+            parsed_apo, parsed_serial = parse_sticker(device_serial_no, default_apo=apo_number_id)
+            if not apo_number_id:
+                apo_number_id = parsed_apo
+            device_serial_no = parsed_serial
 
         if not device_serial_no:
             device_serial_no = get_thinclient_uid()

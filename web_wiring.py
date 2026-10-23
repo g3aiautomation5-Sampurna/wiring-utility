@@ -29,6 +29,8 @@ from pms_json_manager import (
     build_serial_no_validation,
     build_status_validation,
     build_report_store,
+    build_empty_report_store,
+    build_empty_payloads,
     save_payload_to_file,
     load_or_create_config
 )
@@ -431,8 +433,43 @@ HTML_PAGE = """<!DOCTYPE html>
             color: #f8fafc;
             font-size: 12px;
             font-weight: 600;
-            width: 160px;
+            width: 210px;
             outline: none;
+        }
+
+        .qr-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            white-space: nowrap;
+            user-select: none;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+        }
+
+        .qr-badge.idle {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+
+        .qr-badge.validating {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid #f59e0b;
+        }
+
+        .qr-badge.success {
+            background: rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            border: 1px solid #10b981;
+        }
+
+        .qr-badge.failed {
+            background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            border: 1px solid #ef4444;
         }
 
         .qr-input::placeholder {
@@ -597,16 +634,37 @@ HTML_PAGE = """<!DOCTYPE html>
             align-items: center;
             gap: 6px;
             box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
         }
 
-        .btn-start:hover {
+        .btn-start:not(:disabled):hover {
             background: linear-gradient(135deg, #059669, #047857);
             transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
         }
 
-        .btn-start:active {
+        .btn-start:not(:disabled):active {
             transform: translateY(0);
+        }
+
+        .btn-start:disabled {
+            background: #1e293b;
+            color: #64748b;
+            border: 1px solid #334155;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            opacity: 0.6;
+        }
+
+        .btn-start.ready-pulse {
+            animation: pulse-ready 1.8s infinite;
+        }
+
+        @keyframes pulse-ready {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         /* Layout */
@@ -1040,9 +1098,10 @@ HTML_PAGE = """<!DOCTYPE html>
         <!-- Actions (QR input, Batch Upload, Excel, START) -->
         <div class="header-actions">
             <!-- QR / Barcode Scanner Input Box -->
-            <div class="qr-input-group" title="Scan QR Code or Type Device Serial No.">
+            <div class="qr-input-group" title="Scan QR Code (Format: Id: ..; Sr: ..;) or Device Serial No.">
                 <span class="qr-icon">🏷️</span>
-                <input type="text" id="deviceSerialInput" class="qr-input" placeholder="Scan QR / Device ID..." autocomplete="off" autofocus />
+                <input type="text" id="deviceSerialInput" class="qr-input" placeholder="Scan QR (Id: ..; Sr: ..;) or Serial..." autocomplete="off" autofocus />
+                <span id="qrValidationBadge" class="qr-badge idle" title="PMS Validation Status">Scan to Validate</span>
                 <button class="btn-clear-qr" id="btnClearQr" onclick="clearQrInput()" title="Clear Device ID">✕</button>
             </div>
 
@@ -1062,7 +1121,7 @@ HTML_PAGE = """<!DOCTYPE html>
             <button class="btn-header" id="btnLiveReset" onclick="resetToLiveCameras()" title="Switch back to live video streams">
                 🔄 Live
             </button>
-            <button class="btn-start" id="btnStartInspection" onclick="triggerStartInspection()">
+            <button class="btn-start" id="btnStartInspection" onclick="triggerStartInspection()" disabled title="Scan QR Code and complete PMS validation before starting">
                 ▶ START
             </button>
         </div>
@@ -1128,7 +1187,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     <button class="btn-icon" onclick="swapCameras()" title="Swap Camera Inputs">⇄ Swap</button>
                     <button class="btn-icon" onclick="restartLiveCameras()" title="Refresh Camera Streams">🔄 Refresh</button>
                 </div>
-                <div id="footerStatus">Ready. Scan QR Code or click START to inspect and log to Excel.</div>
+                <div id="footerStatus">Scan QR Code or enter Device Serial No. to validate with server and activate START.</div>
             </div>
         </div>
 
@@ -1138,7 +1197,7 @@ HTML_PAGE = """<!DOCTYPE html>
             <div class="verdict-box" id="verdictBanner">
                 <div class="verdict-status" id="verdictText">AWAITING START</div>
                 <div class="verdict-device" id="verdictDevice">Device: —</div>
-                <div class="verdict-desc" id="verdictDesc">Scan QR code or click START to inspect & log to Excel</div>
+                <div class="verdict-desc" id="verdictDesc">Scan QR code to validate with PMS server & activate START button</div>
             </div>
 
             <!-- Unified Results Checklist -->
@@ -1235,31 +1294,161 @@ HTML_PAGE = """<!DOCTYPE html>
         const btnStartInspection = document.getElementById('btnStartInspection');
         const deviceSerialInput = document.getElementById('deviceSerialInput');
 
+        function parseQrInput(text) {
+            if (!text) return { id: '', sr: '' };
+            const idMatch = text.match(/(?:^|[;,|\s])\s*(?:APoNumberId|APO(?:_?ID)?|Id)\s*[:=]\s*([^;,|]+)/i);
+            const srMatch = text.match(/(?:^|[;,|\s])\s*(?:DeviceSerial(?:No)?|Serial(?:No)?|Sr(?:No)?|SN)\s*[:=]\s*([^;,|]+)/i);
+            let id = idMatch ? idMatch[1].trim() : '';
+            let sr = srMatch ? srMatch[1].trim() : '';
+            if (!id && !sr) {
+                for (const sep of [',', '|', ';', '/']) {
+                    if (text.includes(sep)) {
+                        const parts = text.split(sep).map(p => p.trim()).filter(Boolean);
+                        if (parts.length >= 2) {
+                            id = parts[0];
+                            sr = parts[1];
+                            break;
+                        }
+                    }
+                }
+                if (!sr && !id) {
+                    sr = text.trim();
+                }
+            }
+            return { id, sr };
+        }
+
+        let currentValidatedCode = null;
+        let isValidating = false;
+
+        async function validateScannedDevice() {
+            const rawVal = deviceSerialInput.value.trim();
+            if (!rawVal) {
+                setValidationState('idle', 'Scan to Validate');
+                btnStartInspection.disabled = true;
+                btnStartInspection.classList.remove('ready-pulse');
+                document.getElementById('footerStatus').innerText = "Scan QR Code or enter Device Serial No. to validate with server and activate START.";
+                return;
+            }
+
+            if (isValidating) return;
+
+            // If already validated for this exact string and button is currently active
+            if (currentValidatedCode === rawVal && !btnStartInspection.disabled) {
+                return;
+            }
+
+            isValidating = true;
+            btnStartInspection.disabled = true;
+            btnStartInspection.classList.remove('ready-pulse');
+            setValidationState('validating', '⏳ Validating PMS...');
+            document.getElementById('footerStatus').innerText = "Validating with server (Whitelisting, SerialNo, StatusValidation)...";
+
+            try {
+                const res = await fetch('/api/pms/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ device_id: rawVal })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.validated) {
+                    currentValidatedCode = rawVal;
+                    setValidationState('success', '✔ CONFIG SUCCESSFUL');
+                    btnStartInspection.disabled = false;
+                    btnStartInspection.classList.add('ready-pulse');
+                    document.getElementById('footerStatus').innerText = `✔ Server responded CONFIG SUCCESSFUL for Serial [${data.serial_no}], APO [${data.apo_id}]. START button ACTIVATED.`;
+                } else {
+                    currentValidatedCode = null;
+                    setValidationState('failed', '✖ Validation Failed');
+                    btnStartInspection.disabled = true;
+                    btnStartInspection.classList.remove('ready-pulse');
+                    const errMsg = data.message || 'Server rejected configuration';
+                    document.getElementById('footerStatus').innerText = `✖ PMS Validation Failed: ${errMsg}. START button remains disabled.`;
+                    alert(`PMS Validation Failed: ${errMsg}`);
+                }
+            } catch (err) {
+                currentValidatedCode = null;
+                setValidationState('failed', '✖ Server Error');
+                btnStartInspection.disabled = true;
+                btnStartInspection.classList.remove('ready-pulse');
+                document.getElementById('footerStatus').innerText = `✖ Cannot reach PMS validation service: ${err.message}`;
+            } finally {
+                isValidating = false;
+            }
+        }
+
+        function setValidationState(state, text) {
+            const badge = document.getElementById('qrValidationBadge');
+            if (!badge) return;
+            badge.className = `qr-badge ${state}`;
+            badge.innerText = text;
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             await initCameraDevices();
 
-            // QR scanner enters text into text box without auto-triggering START
+            // Initial state: START button disabled until validation succeeds
+            btnStartInspection.disabled = true;
+            btnStartInspection.classList.remove('ready-pulse');
+            setValidationState('idle', 'Scan to Validate');
+
+            // QR scanner enters text into text box and fires Enter to validate
             deviceSerialInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    const val = deviceSerialInput.value.trim();
-                    if (val) {
-                        document.getElementById('footerStatus').innerText = `Device ID [${val}] entered. Click START to inspect and log.`;
-                    }
+                    validateScannedDevice();
                 }
             });
 
-            // Spacebar shortcut when not typing
+            // If input is changed or cleared after validation, disable START button immediately
+            let inputDebounceTimer = null;
+            deviceSerialInput.addEventListener('input', () => {
+                const val = deviceSerialInput.value.trim();
+                if (val !== currentValidatedCode) {
+                    btnStartInspection.disabled = true;
+                    btnStartInspection.classList.remove('ready-pulse');
+                    if (!val) {
+                        setValidationState('idle', 'Scan to Validate');
+                        document.getElementById('footerStatus').innerText = "Scan QR Code or enter Device Serial No. to validate with server and activate START.";
+                    } else {
+                        setValidationState('idle', 'Press Enter to Validate');
+                        document.getElementById('footerStatus').innerText = "Device ID changed. Press Enter or scan to validate with PMS server.";
+                    }
+                }
+
+                // Auto-trigger validation if a completed QR string is scanned / pasted
+                clearTimeout(inputDebounceTimer);
+                if (val && (val.includes(';') || val.includes('|')) && (val.toLowerCase().includes('id:') || val.toLowerCase().includes('sr:'))) {
+                    inputDebounceTimer = setTimeout(() => {
+                        if (val !== currentValidatedCode) {
+                            validateScannedDevice();
+                        }
+                    }, 400);
+                }
+            });
+
+            // Spacebar shortcut only triggers inspection when START is enabled
             window.addEventListener('keydown', (e) => {
                 if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                     e.preventDefault();
-                    triggerStartInspection();
+                    if (!btnStartInspection.disabled) {
+                        triggerStartInspection();
+                    } else {
+                        document.getElementById('footerStatus').innerText = "⚠️ START is disabled: Please scan QR and complete PMS validation with server first.";
+                    }
                 }
             });
         });
 
         function clearQrInput() {
             deviceSerialInput.value = '';
+            currentValidatedCode = null;
+            pmsPayloadsCache = null;
+            btnStartInspection.disabled = true;
+            btnStartInspection.classList.remove('ready-pulse');
+            setValidationState('idle', 'Scan to Validate');
+            document.getElementById('footerStatus').innerText = "Ready. Scan QR Code (Id: ..; Sr: ..;) to validate and activate START.";
             deviceSerialInput.focus();
         }
 
@@ -1463,7 +1652,11 @@ HTML_PAGE = """<!DOCTYPE html>
         }
 
         async function triggerStartInspection() {
+            if (btnStartInspection.disabled) {
+                return;
+            }
             btnStartInspection.disabled = true;
+            btnStartInspection.classList.remove('ready-pulse');
             document.getElementById('footerStatus').innerText = "Inspecting both cameras and logging to Excel...";
 
             if (uploadedTopBase64) {
@@ -1481,6 +1674,7 @@ HTML_PAGE = """<!DOCTYPE html>
             if (!rawTopBase64 || !rawOrig3Base64) {
                 alert("Please ensure both Top View and Origin View images are available via live cameras or upload.");
                 btnStartInspection.disabled = false;
+                btnStartInspection.classList.add('ready-pulse');
                 return;
             }
 
@@ -1507,7 +1701,10 @@ HTML_PAGE = """<!DOCTYPE html>
                 console.error(err);
                 document.getElementById('footerStatus').innerText = "Inspection request failed.";
             } finally {
-                btnStartInspection.disabled = false;
+                btnStartInspection.disabled = true;
+                btnStartInspection.classList.remove('ready-pulse');
+                currentValidatedCode = null;
+                setValidationState('idle', 'Scan Next QR');
                 deviceSerialInput.select();
                 deviceSerialInput.focus();
             }
@@ -1534,7 +1731,8 @@ HTML_PAGE = """<!DOCTYPE html>
             const verdictDevice = document.getElementById('verdictDevice');
             const verdictDesc = document.getElementById('verdictDesc');
 
-            verdictDevice.innerText = `Device ID: ${deviceId}`;
+            const displayId = data.serial_no ? (data.apo_id ? `${data.serial_no} (APO: ${data.apo_id})` : data.serial_no) : deviceId;
+            verdictDevice.innerText = `Device: ${displayId}`;
 
             if (combinedPass) {
                 banner.className = "verdict-box pass";
@@ -1565,12 +1763,13 @@ HTML_PAGE = """<!DOCTYPE html>
                 const res = await fetch('/api/open_excel', { method: 'POST' });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    document.getElementById('footerStatus').innerText = "Opened Result/Inspection_Log.xlsx in Microsoft Excel.";
+                    document.getElementById('footerStatus').innerText = "Opened Result/Inspection_Log.xlsx.";
+                    window.location.href = '/api/download_excel';
                 } else {
                     alert(data.message || "Could not open Excel sheet.");
                 }
             } catch (e) {
-                window.open('/api/download_excel', '_blank');
+                window.location.href = '/api/download_excel';
             }
         }
 
@@ -1721,47 +1920,61 @@ HTML_PAGE = """<!DOCTYPE html>
         let activePmsTab = 'report';
 
         async function openPmsJsonModal() {
-            document.getElementById('pmsJsonModal').style.display = 'flex';
-            const deviceId = document.getElementById('deviceSerialInput').value.trim() || '88:AE:DD:B6:03:5D';
-            if (!pmsPayloadsCache || !pmsPayloadsCache.DeviceAutoWhitelisting) {
-                try {
-                    const res = await fetch(`/api/pms/payloads?device_id=${encodeURIComponent(deviceId)}`);
+            const modal = document.getElementById('pmsJsonModal');
+            if (modal) modal.style.display = 'flex';
+            const rawVal = document.getElementById('deviceSerialInput') ? document.getElementById('deviceSerialInput').value.trim() : '';
+
+            try {
+                if (!pmsPayloadsCache || pmsPayloadsCache._forDevice !== rawVal) {
+                    const res = await fetch(`/api/pms/payloads?device_id=${encodeURIComponent(rawVal)}`);
                     const data = await res.json();
                     const existingReport = pmsPayloadsCache ? pmsPayloadsCache.ReportStore : null;
-                    pmsPayloadsCache = data.payloads;
-                    if (existingReport) {
-                        pmsPayloadsCache.ReportStore = existingReport;
+                    if (data && data.payloads) {
+                        pmsPayloadsCache = data.payloads;
+                        pmsPayloadsCache._forDevice = rawVal;
+                        // If we have an actual completed inspection report cached (not empty), retain it
+                        if (existingReport && existingReport.ColumnsName && existingReport.ColumnsName[0] && existingReport.ColumnsName[0].TaktTime !== "") {
+                            pmsPayloadsCache.ReportStore = existingReport;
+                        }
                     }
-                } catch (err) {
-                    document.getElementById('pmsJsonPre').innerText = "Failed to load PMS JSON.";
                 }
+            } catch (err) {
+                console.error("Failed to load PMS JSON:", err);
+                const pre = document.getElementById('pmsJsonPre');
+                if (pre) pre.innerText = "Failed to load PMS JSON: " + err.message;
             }
             renderPmsModalJson();
         }
 
         function closePmsJsonModal(e) {
-            if (!e || e.target.id === 'pmsJsonModal' || e.target.classList.contains('modal-close') || e.target.classList.contains('btn-modal-close')) {
-                document.getElementById('pmsJsonModal').style.display = 'none';
+            if (!e || e.target.id === 'pmsJsonModal' || (e.target.classList && (e.target.classList.contains('modal-close') || e.target.classList.contains('btn-modal-close')))) {
+                const modal = document.getElementById('pmsJsonModal');
+                if (modal) modal.style.display = 'none';
             }
         }
 
         function switchModalTab(tab) {
             activePmsTab = tab;
             document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
-            if (tab === 'report') document.getElementById('tabReport').classList.add('active');
-            if (tab === 'whitelist') document.getElementById('tabWhitelist').classList.add('active');
-            if (tab === 'serial') document.getElementById('tabSerial').classList.add('active');
-            if (tab === 'status') document.getElementById('tabStatus').classList.add('active');
+            if (tab === 'report') document.getElementById('tabReport')?.classList.add('active');
+            if (tab === 'whitelist') document.getElementById('tabWhitelist')?.classList.add('active');
+            if (tab === 'serial') document.getElementById('tabSerial')?.classList.add('active');
+            if (tab === 'status') document.getElementById('tabStatus')?.classList.add('active');
             renderPmsModalJson();
         }
 
         function renderPmsModalJson() {
-            if (!pmsPayloadsCache) return;
+            const pre = document.getElementById('pmsJsonPre');
+            if (!pre) return;
+            if (!pmsPayloadsCache) {
+                pre.innerText = "Loading PMS JSON payloads...";
+                return;
+            }
             let jsonTarget = pmsPayloadsCache.ReportStore;
             if (activePmsTab === 'whitelist') jsonTarget = pmsPayloadsCache.DeviceAutoWhitelisting;
             if (activePmsTab === 'serial') jsonTarget = pmsPayloadsCache.SerialNoValidation;
             if (activePmsTab === 'status') jsonTarget = pmsPayloadsCache.StatusValidation;
-            document.getElementById('pmsJsonPre').innerText = JSON.stringify(jsonTarget, null, 2);
+            pre.innerText = JSON.stringify(jsonTarget || {}, null, 2);
         }
 
         function copyPmsJson() {
@@ -1867,70 +2080,123 @@ def download_excel_endpoint():
         return send_file(CSV_PATH, as_attachment=True, download_name="Inspection_Log.csv")
     return "No inspection log generated yet", 404
 
-@app.route("/api/inspect", methods=["POST"])
-def inspect_endpoint():
-    t_start = time.time()
+# Authorization cache for scanned devices validated via PMS MQTT
+validated_device_cache = {
+    "serial_no": None,
+    "apo_id": None,
+    "timestamp": 0.0,
+    "raw_input": None
+}
+
+@app.route("/api/pms/validate", methods=["POST"])
+def pms_validate_endpoint():
+    """
+    Validates a scanned device against PMS MQTT server before activating the START button:
+    1. Extracts APoNumberId and DeviceSerialNo from scanned QR text (e.g. 'Id: ..; Sr: ..;').
+    2. Sends DeviceAutoWhitelisting, SerialNoValidation, and StatusValidation sequentially.
+    3. Confirms that the server responds with CmdType='ResponseFromServer' and RequestStatus='CONFIG SUCCESSFUL'.
+    4. Caches the authorization so that the START button can run inspection.
+    """
+    global validated_device_cache
     data = request.get_json() or {}
-    device_id = data.get("device_id") or "N/A"
+    device_id = str(data.get("device_id") or "").strip()
 
-    
-    # # PMS pre-inspection validation gate
-    # try:
-    #     apo_id, serial_no = parse_sticker(device_id)
-    #     mac = get_pc_mac_address()
+    if not device_id:
+        return jsonify({
+            "status": "error",
+            "validated": False,
+            "message": "No serial number or QR code provided. Please scan a QR code first."
+        }), 400
 
-    #     _, whitelist_payload = build_device_autowhitelisting(mac)
-    #     _, serial_payload = build_serial_no_validation(
-    #         serial_no, apo_id, mac
-    #     )
-    #     _, status_payload = build_status_validation(
-    #         serial_no, apo_id, mac
-    #     )
+    apo_id, serial_no = parse_sticker(device_id)
 
-    #     pms_mqtt.validate(
-    #         "DeviceAutoWhitelisting", whitelist_payload
-    #     )
-    #     pms_mqtt.validate(
-    #         "SerialNoValidation", serial_payload
-    #     )
-    #     pms_mqtt.validate(
-    #         "StatusValidation", status_payload
-    #     )
-
-    #     print("[PMS] All three validations succeeded. Starting inspection.")
-
-    # except Exception as exc:
-    #     print(f"[PMS] Pre-inspection validation failed: {exc}")
-    #     return jsonify({
-    #         "status": "error",
-    #         "stage": "pms_validation",
-    #         "message": str(exc),
-    #         "inspection_started": False
-    #     }), 503
-
-    # PMS pre-inspection validation gate(sending via mqtt)
     try:
-        apo_id, serial_no = parse_sticker(device_id)
+        print("\n" + "=" * 60)
+        print(f"[PMS VALIDATION GATE] Validating scanned device: Serial={serial_no}, APO={apo_id}...")
+        print("=" * 60)
 
-        validation_result = pms_mqtt.run_startup_validation(
+        pms_mqtt.run_startup_validation(
             device_serial_no=serial_no,
             apo_number_id=apo_id
         )
 
-        print(
-            "[PMS] All three validations succeeded. "
-            "Starting inspection."
-        )
+        validated_device_cache = {
+            "serial_no": serial_no,
+            "apo_id": apo_id,
+            "timestamp": time.time(),
+            "raw_input": device_id
+        }
 
-    except Exception as exc:
-        print(f"[PMS] Pre-inspection validation failed: {exc}")
+        print(f"[PMS VALIDATION GATE] All 3 validations confirmed CONFIG SUCCESSFUL for {serial_no}. START button enabled.\n")
 
         return jsonify({
+            "status": "success",
+            "validated": True,
+            "serial_no": serial_no,
+            "apo_id": apo_id,
+            "raw_qr": device_id,
+            "message": f"Server responded CONFIG SUCCESSFUL for Whitelisting, SerialNo, and StatusValidation. START button activated."
+        })
+
+    except Exception as exc:
+        print(f"[PMS VALIDATION GATE] Validation failed for {serial_no}: {exc}\n")
+        validated_device_cache = {
+            "serial_no": None,
+            "apo_id": None,
+            "timestamp": 0.0,
+            "raw_input": None
+        }
+        return jsonify({
             "status": "error",
-            "stage": "pms_validation",
-            "message": str(exc),
-            "inspection_started": False
+            "validated": False,
+            "serial_no": serial_no,
+            "apo_id": apo_id,
+            "raw_qr": device_id,
+            "message": str(exc)
         }), 503
+
+@app.route("/api/inspect", methods=["POST"])
+def inspect_endpoint():
+    global validated_device_cache
+    t_start = time.time()
+    data = request.get_json() or {}
+    device_id = data.get("device_id") or "N/A"
+
+    apo_id, serial_no = parse_sticker(device_id)
+
+    # Check if this device already completed startup validation with CONFIG SUCCESSFUL within last 5 minutes
+    now_t = time.time()
+    is_prevalidated = (
+        validated_device_cache.get("serial_no") == serial_no
+        and (now_t - validated_device_cache.get("timestamp", 0.0)) < 300.0
+    )
+
+    if not is_prevalidated:
+        try:
+            print(f"[PMS] Running startup validation for Serial={serial_no}, APO={apo_id}...")
+            pms_mqtt.run_startup_validation(
+                device_serial_no=serial_no,
+                apo_number_id=apo_id
+            )
+            print("[PMS] All three validations succeeded with CONFIG SUCCESSFUL. Starting inspection.")
+        except Exception as exc:
+            print(f"[PMS] Pre-inspection validation failed: {exc}")
+            return jsonify({
+                "status": "error",
+                "stage": "pms_validation",
+                "message": str(exc),
+                "inspection_started": False
+            }), 503
+    else:
+        print(f"[PMS] Pre-validation verified (CONFIG SUCCESSFUL) for Serial={serial_no}. Starting inspection directly.")
+
+    # Reset cache after starting inspection so each board requires a fresh validation
+    validated_device_cache = {
+        "serial_no": None,
+        "apo_id": None,
+        "timestamp": 0.0,
+        "raw_input": None
+    }
 
 
     top_img_data = data.get("top_image")
@@ -1977,7 +2243,8 @@ def inspect_endpoint():
     timestamp_file = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     notes_lines = []
-    notes_lines.append(f"═════════════ INSPECTION LOG: {device_id} ═════════════\n")
+    notes_lines.append(f"═════════════ INSPECTION LOG: {serial_no} ═════════════")
+    notes_lines.append(f"🏷️  Device Serial: {serial_no} | APO Number ID: {apo_id}\n")
 
     # 1. Wire Paths
     notes_lines.append("🔌 WIRE ROUTING PATHS (Arducam_TOP):")
@@ -2013,7 +2280,7 @@ def inspect_endpoint():
     os.makedirs(result_dir, exist_ok=True)
 
     # Save annotated inspection views
-    clean_device_id = "".join(c for c in device_id if c.isalnum() or c in ('-', '_')).strip() or "device"
+    clean_device_id = "".join(c for c in serial_no if c.isalnum() or c in ('-', '_')).strip() or "device"
     prefix = f"{timestamp_file}_{clean_device_id}"
 
     if "img_wires" in top_res and top_res["img_wires"] is not None:
@@ -2047,7 +2314,7 @@ def inspect_endpoint():
     # 4. Log to Excel Sheet & CSV
     excel_record = {
         "timestamp": now_str,
-        "device_id": device_id,
+        "device_id": serial_no,
         "combined_pass": combined_pass,
         "orig3_grommet_pass": orig3_grommet_pass,
         "obl_pass": obl_pass,
@@ -2063,7 +2330,6 @@ def inspect_endpoint():
 
     # 5. Generate and Log Selec PMS Report JSON Output (PASS or FAIL)
     takt_time = time.time() - t_start
-    apo_id, serial_no = parse_sticker(device_id)
     verdict_label = "PASS" if combined_pass else "FAIL"
     try:
         req_id, pms_report_payload = build_report_store(
@@ -2132,7 +2398,10 @@ def inspect_endpoint():
         "orig3_grommet_pass": orig3_grommet_pass,
         "orig2_grommet_pass": orig3_grommet_pass
     }
-    response_payload["device_id"] = device_id
+    response_payload["device_id"] = serial_no
+    response_payload["raw_qr"] = device_id
+    response_payload["serial_no"] = serial_no
+    response_payload["apo_id"] = apo_id
     response_payload["combined_pass"] = combined_pass
     response_payload["saved_folder"] = f"Result/{target_folder}"
     response_payload["excel_log"] = "Result/Inspection_Log.xlsx"
@@ -2143,21 +2412,37 @@ def inspect_endpoint():
 @app.route("/api/pms/payloads", methods=["GET", "POST"])
 def pms_payloads_endpoint():
     """
-    Returns all 4 required PMS JSON payloads dynamically for the current PC & scanned device.
+    Returns all 4 required PMS JSON payloads.
+    Before scanning anything and before doing anything, all fields in the JSON will be empty.
     """
-    device_id = request.args.get("device_id") or "001260101010122505100002640000142"
+    device_id = str(request.args.get("device_id") or "").strip()
+
+    if not device_id:
+        return jsonify({
+            "status": "success",
+            "detected_mac": "",
+            "raw_qr": "",
+            "scanned_serial_no": "",
+            "device_serial_no": "",
+            "apo_number_id": "",
+            "payloads": build_empty_payloads()
+        })
+
     apo_id, serial_no = parse_sticker(device_id)
     mac = get_pc_mac_address()
 
     _, p1 = build_device_autowhitelisting(mac)
     _, p2 = build_serial_no_validation(serial_no, apo_id, mac)
     _, p3 = build_status_validation(serial_no, apo_id, mac)
-    _, p4 = build_report_store(serial_no, apo_id, takt_time=41.272, wire_origin_pass=True, vi_test_pass=True, mac_id=mac)
+    # Before running inspection ("before doing anything"), ReportStore results remain empty
+    p4 = build_empty_report_store(device_serial_no=serial_no, apo_number_id=apo_id, mac_id=mac)
 
     return jsonify({
         "status": "success",
         "detected_mac": mac,
+        "raw_qr": device_id,
         "scanned_serial_no": serial_no,
+        "device_serial_no": serial_no,
         "apo_number_id": apo_id,
         "payloads": {
             "DeviceAutoWhitelisting": p1,

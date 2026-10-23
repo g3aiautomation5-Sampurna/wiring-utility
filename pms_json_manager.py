@@ -168,9 +168,14 @@ def generate_utc_request_id():
 def parse_sticker(scanned_code=None, default_apo=None):
     """
     Parses scanned barcode/QR sticker.
-    If sticker contains delimiter (e.g. '56,001260101...' or '56|00126...'), splits into (apo_id, serial_no).
-    If no code is provided, defaults to the Thinclient UID / MAC.
-    Otherwise returns (default_apo, scanned_code).
+    Expected QR text format: 'Id: ..; Sr: ..;'
+    - 'Id: <apo_number_id>' -> extracted as APoNumberId (e.g. '56')
+    - 'Sr: <device_serial_no>' -> extracted as DeviceSerialNo (e.g. '001260101010122505100002640000142')
+
+    Also supports:
+    - Delimited format: '56,001260101...' or '56|00126...' -> (apo_id, serial_no)
+    - Plain serial without APO: '00126...' -> (default_apo, serial_no)
+    - Empty / N/A -> (default_apo, thinclient_uid)
     """
     if default_apo is None:
         cfg = load_or_create_config()
@@ -180,14 +185,30 @@ def parse_sticker(scanned_code=None, default_apo=None):
     if not scanned or scanned in ["N/A", "None", "", "device"]:
         return str(default_apo), get_thinclient_uid()
 
+    # 1. Match explicit Id: ... and/or Sr: ... pattern (case-insensitive)
+    id_match = re.search(r'(?:^|[;,|\r\n\s])\s*(?:APoNumberId|APO(?:_?ID)?|Id)\s*[:=]\s*([^;,|\r\n]+)', scanned, re.IGNORECASE)
+    sr_match = re.search(r'(?:^|[;,|\r\n\s])\s*(?:DeviceSerial(?:No)?|Serial(?:No)?|Sr(?:No)?|SN)\s*[:=]\s*([^;,|\r\n]+)', scanned, re.IGNORECASE)
+
+    if id_match or sr_match:
+        apo = id_match.group(1).strip() if id_match else str(default_apo)
+        serial = sr_match.group(1).strip() if sr_match else get_thinclient_uid()
+        if not serial:
+            serial = get_thinclient_uid()
+        if not apo:
+            apo = str(default_apo)
+        return apo, serial
+
+    # 2. Legacy delimited formats (e.g. '56,00126...', '56|00126...')
     for delimiter in [",", "|", ";", "/"]:
         if delimiter in scanned:
-            parts = scanned.split(delimiter)
+            parts = [p.strip() for p in scanned.split(delimiter) if p.strip()]
             if len(parts) >= 2:
-                apo = parts[0].strip()
-                serial = parts[1].strip()
+                apo = parts[0]
+                serial = parts[1]
                 if apo and serial:
                     return apo, serial
+            elif len(parts) == 1:
+                return str(default_apo), parts[0]
 
     return str(default_apo), scanned
 
@@ -221,6 +242,14 @@ def build_serial_no_validation(device_serial_no=None, apo_number_id=None, mac_id
     cfg = load_or_create_config()
     if not mac_id:
         mac_id = get_pc_mac_address()
+
+    # Auto-parse if a full QR string (e.g. 'Id: ..; Sr: ..;') was passed as device_serial_no
+    if device_serial_no and any(k in str(device_serial_no).lower() for k in ["id:", "sr:"]):
+        parsed_apo, parsed_serial = parse_sticker(device_serial_no, default_apo=apo_number_id)
+        if not apo_number_id:
+            apo_number_id = parsed_apo
+        device_serial_no = parsed_serial
+
     if not device_serial_no or str(device_serial_no).strip() in ["", "None", "N/A"]:
         device_serial_no = get_thinclient_uid()
     if not apo_number_id:
@@ -267,6 +296,14 @@ def build_status_validation(device_serial_no=None, apo_number_id=None, mac_id=No
     cfg = load_or_create_config()
     if not mac_id:
         mac_id = get_pc_mac_address()
+
+    # Auto-parse if a full QR string (e.g. 'Id: ..; Sr: ..;') was passed as device_serial_no
+    if device_serial_no and any(k in str(device_serial_no).lower() for k in ["id:", "sr:"]):
+        parsed_apo, parsed_serial = parse_sticker(device_serial_no, default_apo=apo_number_id)
+        if not apo_number_id:
+            apo_number_id = parsed_apo
+        device_serial_no = parsed_serial
+
     if not device_serial_no or str(device_serial_no).strip() in ["", "None", "N/A"]:
         device_serial_no = get_thinclient_uid()
     if not apo_number_id:
@@ -309,6 +346,14 @@ def build_report_store(device_serial_no=None, apo_number_id=None, takt_time=0.0,
     cfg = load_or_create_config()
     if not mac_id:
         mac_id = get_pc_mac_address()
+
+    # Auto-parse if a full QR string (e.g. 'Id: ..; Sr: ..;') was passed as device_serial_no
+    if device_serial_no and any(k in str(device_serial_no).lower() for k in ["id:", "sr:"]):
+        parsed_apo, parsed_serial = parse_sticker(device_serial_no, default_apo=apo_number_id)
+        if not apo_number_id:
+            apo_number_id = parsed_apo
+        device_serial_no = parsed_serial
+
     if not device_serial_no or str(device_serial_no).strip() in ["", "None", "N/A"]:
         device_serial_no = get_thinclient_uid()
     if not apo_number_id:
@@ -347,14 +392,150 @@ def build_report_store(device_serial_no=None, apo_number_id=None, takt_time=0.0,
     }
     return req_id, payload
 
+def build_empty_report_store(device_serial_no="", apo_number_id="", mac_id=""):
+    """
+    Builds the ReportStore template with empty test results.
+    Used before inspection is performed.
+    """
+    cfg = load_or_create_config()
+    table_report = cfg.get("table_report_store") or cfg.get("table_report", "Z_VI_TEST")
+    line_no = cfg.get("plc_jig_production_line_no") or cfg.get("production_line_no", "")
+    jig_uid = cfg.get("jig_uid", "")
+
+    return {
+        "CmdType": "ReportStore",
+        "UtcRequest_ID": "",
+        "Device_MAC_ID": str(mac_id) if mac_id else "",
+        "TableName": table_report,
+        "ColumnsName": [
+            {
+                "APoNumberId": str(apo_number_id) if apo_number_id else "",
+                "RowCreationTimeStamp": "",
+                "RowUpdationTimeStamp": "",
+                "WifiMasterMacid": str(mac_id) if mac_id else "",
+                "WifiDate": "",
+                "WifiTime": "",
+                "PlcJigProductionLineNo": str(line_no) if line_no else "",
+                "DeviceSerialNo": str(device_serial_no) if device_serial_no else "",
+                "TaktTime": "",
+                "JigUid": str(jig_uid) if jig_uid else "",
+                "WireOrigin": "",
+                "ViTest": ""
+            }
+        ]
+    }
+
+def build_empty_payloads():
+    """
+    Returns all 4 PMS JSON templates where all dynamic and data fields are empty.
+    Used before scanning any barcode and before running any inspection.
+    """
+    cfg = load_or_create_config()
+    table_serial = cfg.get("table_serial_validation") or cfg.get("table_serial", "K_ALL_SERIAL_NUMBER")
+    table_status = cfg.get("table_status_validation") or cfg.get("table_status", "E_DEVICE")
+    table_report = cfg.get("table_report_store") or cfg.get("table_report", "Z_VI_TEST")
+
+    return {
+        "DeviceAutoWhitelisting": {
+            "CmdType": "DeviceAutoWhitelisting",
+            "UtcRequest_ID": "",
+            "Device_MAC_ID": "",
+            "TopicToPublish": "",
+            "TopicToSubscribe": ""
+        },
+        "SerialNoValidation": {
+            "CmdType": "SerialNoValidation",
+            "UtcRequest_ID": "",
+            "Device_MAC_ID": "",
+            "TableName": table_serial,
+            "TestingStage": "",
+            "SlaveVersionNo": "",
+            "ColumnsName": [
+                {
+                    "APoNumberId": "",
+                    "DeviceSerialNo": "",
+                    "DevicePrintNo": "",
+                    "PowerSupplySerialNo": "",
+                    "PowerSupplyPrintNo": "",
+                    "DisplaySerialNo": "",
+                    "DisplayPrintNo": "",
+                    "LogicSerialNo": "",
+                    "LogicPrintNo": "",
+                    "RowCreationTimeStamp": "",
+                    "RowUpdationTimeStamp": "",
+                    "KAllSerialNumberId": "",
+                    "LineNo": ""
+                }
+            ]
+        },
+        "StatusValidation": {
+            "CmdType": "StatusValidation",
+            "UtcRequest_ID": "",
+            "Device_MAC_ID": "",
+            "TableName": table_status,
+            "ColumnsName": [
+                {
+                    "APoNumberId": "",
+                    "EMainId": "",
+                    "DeviceSerialNo": "",
+                    "RowCreationTimeStamp": "",
+                    "RowUpdationTimeStamp": "",
+                    "PowerSupplyBoardTest": "",
+                    "LogicBoardTest": "",
+                    "DisplayBoardTest": "",
+                    "PowerOnStageTest": "",
+                    "HVTest": "",
+                    "HRTTest": "",
+                    "FunctionalTest": "",
+                    "PackingStage": "",
+                    "ViTest": "",
+                    "LinkingStage": ""
+                }
+            ]
+        },
+        "ReportStore": {
+            "CmdType": "ReportStore",
+            "UtcRequest_ID": "",
+            "Device_MAC_ID": "",
+            "TableName": table_report,
+            "ColumnsName": [
+                {
+                    "APoNumberId": "",
+                    "RowCreationTimeStamp": "",
+                    "RowUpdationTimeStamp": "",
+                    "WifiMasterMacid": "",
+                    "WifiDate": "",
+                    "WifiTime": "",
+                    "PlcJigProductionLineNo": "",
+                    "DeviceSerialNo": "",
+                    "TaktTime": "",
+                    "JigUid": "",
+                    "WireOrigin": "",
+                    "ViTest": ""
+                }
+            ]
+        }
+    }
+
 def get_all_payloads(device_serial_no=None, apo_number_id=None, takt_time=0.0, wire_origin_pass=True, vi_test_pass=True, mac_id=None):
     """
     Returns all 4 required PMS payloads in one call.
     """
     if not mac_id:
         mac_id = get_pc_mac_address()
+
+    # Auto-parse if a full QR string (e.g. 'Id: ..; Sr: ..;') was passed as device_serial_no
+    if device_serial_no and any(k in str(device_serial_no).lower() for k in ["id:", "sr:"]):
+        parsed_apo, parsed_serial = parse_sticker(device_serial_no, default_apo=apo_number_id)
+        if not apo_number_id:
+            apo_number_id = parsed_apo
+        device_serial_no = parsed_serial
+
     if not device_serial_no or str(device_serial_no).strip() in ["", "None", "N/A"]:
         device_serial_no = get_thinclient_uid()
+    if not apo_number_id:
+        cfg = load_or_create_config()
+        apo_number_id = cfg.get("default_apo_number_id", "56")
     
     _, p1 = build_device_autowhitelisting(mac_id)
     _, p2 = build_serial_no_validation(device_serial_no, apo_number_id, mac_id)
