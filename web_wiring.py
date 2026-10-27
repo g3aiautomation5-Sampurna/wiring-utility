@@ -46,6 +46,12 @@ from pms_json_manager import (
 
 app = Flask(__name__)
 
+# ================= VERSION MANAGEMENT =================
+APP_VERSION = "v1"
+
+# Change this to your own admin password.
+ADMIN_VERSION_PASSWORD = "Admin@123"
+
 # Ensure Result directories exist
 os.makedirs(os.path.join(os.getcwd(), "Result", "Pass"), exist_ok=True)
 os.makedirs(os.path.join(os.getcwd(), "Result", "Fail"), exist_ok=True)
@@ -1271,6 +1277,7 @@ HTML_PAGE = """<!DOCTYPE html>
             <div>
                 <span class="brand-title">Wiring Inspection</span>
                 <span class="brand-tag">Dual Camera</span>
+                <span class="brand-tag" id="appVersionBadge">Version: v1</span>
             </div>
         </div>
 
@@ -1302,6 +1309,9 @@ HTML_PAGE = """<!DOCTYPE html>
             </button>
             <button class="btn-header" onclick="openPmsJsonModal()" title="View & Copy Selec PMS JSON output">
                 📋 PMS JSON
+            </button>
+            <button class="btn-header" onclick="openVersionAdminModal()" title="Admin version settings">
+                ⚙️ Admin Settings
             </button>
             <div id="mqttStatus" class="mqtt-status disconnected">
                 <span class="mqtt-status-dot"></span>
@@ -2431,6 +2441,111 @@ HTML_PAGE = """<!DOCTYPE html>
         // Check immediately, then refresh every 2 seconds
         updateMqttStatus();
         setInterval(updateMqttStatus, 2000);
+
+        // ================= ADMIN VERSION SETTINGS =================
+
+        function openVersionAdminModal() {
+            const modal = document.getElementById("versionAdminModal");
+            const message = document.getElementById("versionAdminMessage");
+
+            document.getElementById("newAppVersion").value = "";
+            document.getElementById("adminVersionPassword").value = "";
+
+            message.style.display = "none";
+            message.textContent = "";
+
+            modal.style.display = "flex";
+        }
+
+        function closeVersionAdminModal(event) {
+            if (event && event.target !== event.currentTarget) {
+                return;
+            }
+
+            document.getElementById("versionAdminModal").style.display = "none";
+        }
+
+        async function submitVersionUpdate() {
+            const version = document.getElementById("newAppVersion").value.trim();
+            const password = document.getElementById("adminVersionPassword").value;
+            const message = document.getElementById("versionAdminMessage");
+
+            message.style.display = "block";
+            message.style.color = "#d97706";
+
+            if (!version) {
+                message.textContent = "Please enter a version number.";
+                return;
+            }
+
+            if (!password) {
+                message.textContent = "Please enter the admin password.";
+                return;
+            }
+
+            message.textContent = "Updating version...";
+
+            try {
+                const response = await fetch("/api/admin/version", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        version: version,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    message.style.color = "#dc2626";
+                    message.textContent = result.message || "Failed to update version.";
+                    return;
+                }
+
+                document.getElementById("appVersionBadge").textContent =
+                    "Version: " + result.version;
+
+                message.style.color = "#16a34a";
+                message.textContent = result.message || "Version updated successfully.";
+
+                document.getElementById("adminVersionPassword").value = "";
+
+            } catch (error) {
+                console.error("Version update error:", error);
+                message.style.color = "#dc2626";
+                message.textContent = "Could not connect to the application server.";
+            }
+        }
+
+        
+        async function loadCurrentVersion() {
+            try {
+                const response = await fetch("/api/version");
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch application version.");
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.version) {
+                    const versionBadge = document.getElementById("appVersionBadge");
+
+                    if (versionBadge) {
+                        versionBadge.textContent = "Version: " + result.version;
+                    }
+                }
+            } catch (error) {
+                console.error("Could not load application version:", error);
+            }
+        }
+
+        // Load the current version when the page opens.
+        loadCurrentVersion();
+
     </script>
 
     <!-- PMS JSON Modal -->
@@ -2451,9 +2566,64 @@ HTML_PAGE = """<!DOCTYPE html>
             <div class="modal-footer">
                 <button class="btn-copy-json" onclick="copyPmsJson()">📋 Copy JSON</button>
                 <button class="btn-modal-close" onclick="closePmsJsonModal()">Close</button>
+                
             </div>
         </div>
     </div>
+    
+    <!-- Admin Version Settings Modal -->
+    <div id="versionAdminModal" class="modal-backdrop"
+        style="display: none;" onclick="closeVersionAdminModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+
+            <div class="modal-header">
+                <h3>⚙️ Admin Version Settings</h3>
+                <button class="modal-close"
+                        onclick="closeVersionAdminModal()">&times;</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <label for="newAppVersion"
+                    style="display: block; margin-bottom: 8px;">
+                    New Application Version
+                </label>
+                <input
+                    type="text"
+                    id="newAppVersion"
+                    placeholder="Example: v2.0"
+                    maxlength="30"
+                    autocomplete="off"
+                    style="width: 100%; box-sizing: border-box;
+                        padding: 10px; margin-bottom: 16px;"
+                >
+
+                <label for="adminVersionPassword"
+                    style="display: block; margin-bottom: 8px;">
+                    Admin Password
+                </label>
+                <input
+                    type="password"
+                    id="adminVersionPassword"
+                    placeholder="Enter admin password"
+                    autocomplete="current-password"
+                    style="width: 100%; box-sizing: border-box;
+                        padding: 10px;"
+                >
+
+                <p id="versionAdminMessage"
+                style="display: none; margin-top: 12px;"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-close"
+                        onclick="closeVersionAdminModal()">Cancel</button>
+                <button type="button" class="btn-start"
+                        onclick="submitVersionUpdate()">Update Version</button>
+            </div>
+
+        </div>
+    </div>
+
 
     <!-- Slide In/Out Config Toast Container -->
     <div id="configToastContainer"></div>
@@ -2966,6 +3136,54 @@ def open_browser():
 #     # Auto open browser in background thread
 #     threading.Thread(target=open_browser, daemon=True).start()
 #     app.run(host="127.0.0.1", port=7860, debug=False)
+
+# ================= VERSION MANAGEMENT API =================
+
+@app.route("/api/version", methods=["GET"])
+def get_app_version():
+    return jsonify({
+        "success": True,
+        "version": APP_VERSION
+    })
+
+
+@app.route("/api/admin/version", methods=["POST"])
+def update_app_version():
+    global APP_VERSION
+
+    data = request.get_json(silent=True) or {}
+
+    version = str(data.get("version", "")).strip()
+    password = str(data.get("password", ""))
+
+    # Validate admin password
+    if password != ADMIN_VERSION_PASSWORD:
+        return jsonify({
+            "success": False,
+            "message": "Incorrect admin password."
+        }), 401
+
+    # Validate version input
+    if not version:
+        return jsonify({
+            "success": False,
+            "message": "Please enter a version number."
+        }), 400
+
+    if len(version) > 30:
+        return jsonify({
+            "success": False,
+            "message": "Version must be 30 characters or fewer."
+        }), 400
+
+    # Update version in application memory only
+    APP_VERSION = version
+
+    return jsonify({
+        "success": True,
+        "version": APP_VERSION,
+        "message": "Version updated successfully."
+    })
 
 
 
