@@ -9,6 +9,7 @@ from pms_json_manager import (
     build_device_autowhitelisting,
     build_serial_no_validation,
     build_status_validation,
+    build_empty_report_store,
     load_or_create_config,
     get_pc_mac_address,
     get_thinclient_uid,
@@ -51,9 +52,19 @@ print(f"[PMS MQTT] Device MAC: {DEVICE_MAC}")
 print(f"[PMS MQTT] Publish topic: {PUBLISH_TOPIC}")
 print(f"[PMS MQTT] Subscribe topic: {RESPONSE_TOPIC}")
 
-CONNECTION_TIMEOUT = 8
-VALIDATION_TIMEOUT = 20
-REPORT_TIMEOUT = 155
+def get_pms_timeouts():
+    """
+    Returns (connection_timeout, server_validation_timeout, report_timeout)
+    dynamically loaded from pms_config.json so timeout values are fully configurable.
+    """
+    cfg = load_or_create_config()
+    server_timeout = float(cfg.get("pms_server_timeout", cfg.get("pms_validation_timeout", 10.0)))
+    conn_timeout = float(cfg.get("pms_connection_timeout", 8.0))
+    report_timeout = float(cfg.get("pms_report_timeout", 15.0))
+    return conn_timeout, server_timeout, report_timeout
+
+CONNECTION_TIMEOUT, VALIDATION_TIMEOUT, REPORT_TIMEOUT = get_pms_timeouts()
+print(f"[PMS MQTT] Timeouts: Validation/Server={VALIDATION_TIMEOUT}s | Connection={CONNECTION_TIMEOUT}s | Report={REPORT_TIMEOUT}s")
 
 
 class PMSMQTTClient:
@@ -93,14 +104,21 @@ class PMSMQTTClient:
             self.connected.is_set()
             and self.subscribed.is_set()
         )
+        cfg = load_or_create_config()
+        active_broker_ip = cfg.get("pms_broker_ip", BROKER_IP)
+        active_broker_port = int(cfg.get("pms_broker_port", BROKER_PORT))
+        conn_timeout, server_timeout, report_timeout = get_pms_timeouts()
 
         return {
             "connected": is_connected,
             "status": "connected" if is_connected else "disconnected",
-            "broker_ip": BROKER_IP,
-            "broker_port": BROKER_PORT,
+            "broker_ip": active_broker_ip,
+            "broker_port": active_broker_port,
             "device_mac": DEVICE_MAC,
             "subscribed": self.subscribed.is_set(),
+            "server_timeout": server_timeout,
+            "connection_timeout": conn_timeout,
+            "report_timeout": report_timeout,
             "error": self.last_error,
         }
 
@@ -206,29 +224,34 @@ class PMSMQTTClient:
         self.last_error = None
 
         try:
+            cfg = load_or_create_config()
+            active_broker_ip = cfg.get("pms_broker_ip", BROKER_IP)
+            active_broker_port = int(cfg.get("pms_broker_port", BROKER_PORT))
+            conn_timeout, _, _ = get_pms_timeouts()
+
             if not self.loop_started:
                 self.client.connect(
-                    BROKER_IP,
-                    BROKER_PORT,
+                    active_broker_ip,
+                    active_broker_port,
                     keepalive=60,
                 )
 
                 self.client.loop_start()
                 self.loop_started = True
 
-            if not self.connected.wait(CONNECTION_TIMEOUT):
+            if not self.connected.wait(conn_timeout):
                 error = (
                     self.last_error
                     or f"Connection timed out to "
-                    f"{BROKER_IP}:{BROKER_PORT}"
+                    f"{active_broker_ip}:{active_broker_port} after {conn_timeout:g}s"
                 )
                 self.last_error = error
                 raise TimeoutError(f"[PMS MQTT] {error}")
 
-            if not self.subscribed.wait(CONNECTION_TIMEOUT):
+            if not self.subscribed.wait(conn_timeout):
                 error = (
                     self.last_error
-                    or "PMS response topic subscription was not confirmed."
+                    or f"PMS response topic subscription was not confirmed within {conn_timeout:g}s."
                 )
                 self.last_error = error
                 raise TimeoutError(f"[PMS MQTT] {error}")
@@ -320,7 +343,8 @@ class PMSMQTTClient:
 
             self.publish_json(payload)
 
-            deadline = time.monotonic() + VALIDATION_TIMEOUT
+            _, validation_timeout, _ = get_pms_timeouts()
+            deadline = time.monotonic() + validation_timeout
 
             while time.monotonic() < deadline:
                 remaining = deadline - time.monotonic()
@@ -376,7 +400,7 @@ class PMSMQTTClient:
                     print(
                         f"[PMS MQTT] {command_name}: SUCCESS"
                     )
-                    return True
+                    return response
 
                 raise RuntimeError(
                     f"{command_name} failed. "
@@ -384,9 +408,9 @@ class PMSMQTTClient:
                 )
 
             raise TimeoutError(
-                f"No matching successful response for "
+                f"No matching response for "
                 f"{command_name} within "
-                f"{VALIDATION_TIMEOUT} seconds."
+                f"{validation_timeout:g} seconds (server timeout reached)."
             )
 
     # --------------------------------------------------
@@ -431,13 +455,13 @@ class PMSMQTTClient:
         print("#" * 60)
 
         # STEP 1: DeviceAutoWhitelisting
-        _, payload = build_device_autowhitelisting(
+        req_id_1, payload_1 = build_device_autowhitelisting(
             mac_id=mac_id,
         )
 
-        self.validate(
+        resp_1 = self.validate(
             "DeviceAutoWhitelisting",
-            payload,
+            payload_1,
         )
 
         print(
@@ -446,15 +470,15 @@ class PMSMQTTClient:
         )
 
         # STEP 2: SerialNoValidation
-        _, payload = build_serial_no_validation(
+        req_id_2, payload_2 = build_serial_no_validation(
             device_serial_no=device_serial_no,
             apo_number_id=apo_number_id,
             mac_id=mac_id,
         )
 
-        self.validate(
+        resp_2 = self.validate(
             "SerialNoValidation",
-            payload,
+            payload_2,
         )
 
         print(
@@ -463,15 +487,21 @@ class PMSMQTTClient:
         )
 
         # STEP 3: StatusValidation
-        _, payload = build_status_validation(
+        req_id_3, payload_3 = build_status_validation(
             device_serial_no=device_serial_no,
             apo_number_id=apo_number_id,
             mac_id=mac_id,
         )
 
-        self.validate(
+        resp_3 = self.validate(
             "StatusValidation",
-            payload,
+            payload_3,
+        )
+
+        payload_4 = build_empty_report_store(
+            device_serial_no=device_serial_no,
+            apo_number_id=apo_number_id,
+            mac_id=mac_id
         )
 
         print("\n")
@@ -483,6 +513,17 @@ class PMSMQTTClient:
         return {
             "success": True,
             "message": "All three PMS validations successful.",
+            "payloads": {
+                "DeviceAutoWhitelisting": payload_1,
+                "SerialNoValidation": payload_2,
+                "StatusValidation": payload_3,
+                "ReportStore": payload_4,
+            },
+            "server_responses": {
+                "DeviceAutoWhitelisting": resp_1,
+                "SerialNoValidation": resp_2,
+                "StatusValidation": resp_3,
+            }
         }
 
     # --------------------------------------------------
@@ -501,7 +542,8 @@ class PMSMQTTClient:
                 "waiting for response..."
             )
 
-            deadline = time.monotonic() + REPORT_TIMEOUT
+            _, _, report_timeout = get_pms_timeouts()
+            deadline = time.monotonic() + report_timeout
 
             while time.monotonic() < deadline:
                 try:
@@ -522,7 +564,7 @@ class PMSMQTTClient:
 
             return {
                 "received": False,
-                "message": "ReportStore response timed out.",
+                "message": f"ReportStore response timed out after {report_timeout:g} seconds.",
             }
 
 

@@ -19,8 +19,6 @@ else:
 CONFIG_FILE = os.path.join(APP_DIR, "pms_config.json")
 OUTPUT_DIR = os.path.join(APP_DIR, "Result", "PMS_Payloads")
 
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Result", "PMS_Payloads")
-
 DEFAULT_CONFIG = {
     "use_mac_as_serial": True,
     "production_line_no": "1",
@@ -33,6 +31,9 @@ DEFAULT_CONFIG = {
     "table_status": "E_DEVICE",
     "pms_broker_ip": "127.0.0.1",
     "pms_broker_port": 1883,
+    "pms_server_timeout": 10,
+    "pms_connection_timeout": 8,
+    "pms_report_timeout": 15,
 }
 
 def load_or_create_config():

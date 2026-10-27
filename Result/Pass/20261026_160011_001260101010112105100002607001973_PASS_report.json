@@ -1,0 +1,22 @@
+{
+    "CmdType": "ReportStore",
+    "UtcRequest_ID": "17930106121048546579224937695047",
+    "Device_MAC_ID": "88:AE:DD:B6:03:5D",
+    "TableName": "Z_VI_TEST",
+    "ColumnsName": [
+        {
+            "APoNumberId": "17",
+            "RowCreationTimeStamp": 1793010612104,
+            "RowUpdationTimeStamp": 1793010612104,
+            "WifiMasterMacid": "88:AE:DD:B6:03:5D",
+            "WifiDate": "26-October-2026, Monday",
+            "WifiTime": "16:00:12",
+            "PlcJigProductionLineNo": "1",
+            "DeviceSerialNo": "001260101010112105100002607001973",
+            "TaktTime": 0.219,
+            "JigUid": "CGJIGxxxxxxxxxx00111",
+            "WireOrigin": 1,
+            "ViTest": 1
+        }
+    ]
+}

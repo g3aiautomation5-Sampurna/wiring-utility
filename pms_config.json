@@ -1,8 +1,11 @@
 {
     "use_mac_as_serial": true,
     "device_mac_override": "",
-    "pms_broker_ip": "192.168.1.100",
+    "pms_broker_ip": "127.0.0.1",
     "pms_broker_port": 1883,
+    "pms_server_timeout": 10.0,
+    "pms_connection_timeout": 8,
+    "pms_report_timeout": 15,
     "pms_broker_username": "YOUR_USERNAME",
     "pms_broker_password": "YOUR_PASSWORD",
     "pms_publish_topic_prefix": "SELEC/PMS/SUB/G7",

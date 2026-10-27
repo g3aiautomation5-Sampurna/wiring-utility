@@ -1,5 +1,14 @@
 import os
 import sys
+
+# Ensure working directory is always the application folder (supports both PyInstaller .exe and script)
+if getattr(sys, "frozen", False):
+    BASE_DIR = os.path.dirname(sys.executable)
+    os.chdir(BASE_DIR)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(BASE_DIR)
+
 import io
 import base64
 import shutil
@@ -621,6 +630,186 @@ HTML_PAGE = """<!DOCTYPE html>
         }
         .btn-modal-close:hover { color: #fff; }
 
+        /* Slide In/Out Config Toast Popup */
+        #configToastContainer {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .config-toast {
+            pointer-events: auto;
+            min-width: 360px;
+            max-width: 460px;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            position: relative;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+            cursor: pointer;
+        }
+
+        .config-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .config-toast.hide {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        .config-toast.success {
+            border-left: 5px solid #10b981;
+        }
+
+        .config-toast.failed {
+            border-left: 5px solid #ef4444;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+        }
+
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .toast-icon.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .toast-icon.failed {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .toast-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .toast-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .toast-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .toast-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 2px 7px;
+            border-radius: 3px;
+        }
+
+        .toast-badge.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid #059669;
+        }
+
+        .toast-badge.failed {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid #dc2626;
+        }
+
+        .toast-body {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.45;
+        }
+
+        .toast-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .toast-meta span strong {
+            color: #38bdf8;
+            font-family: 'Consolas', monospace;
+        }
+
+        .toast-close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .toast-close-btn:hover {
+            color: #fff;
+        }
+
+        /* Progress timer bar at the bottom */
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .toast-progress-bar {
+            height: 100%;
+            width: 100%;
+            transform-origin: left;
+        }
+
+        .toast-progress-bar.success {
+            background: #10b981;
+        }
+
+        .toast-progress-bar.failed {
+            background: #ef4444;
+        }
+
+        @keyframes toastProgressCountdown {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
         .btn-start {
             background: linear-gradient(135deg, #10b981, #059669);
             color: #ffffff;
@@ -1121,7 +1310,7 @@ HTML_PAGE = """<!DOCTYPE html>
             <button class="btn-header" id="btnLiveReset" onclick="resetToLiveCameras()" title="Switch back to live video streams">
                 🔄 Live
             </button>
-            <button class="btn-start" id="btnStartInspection" onclick="triggerStartInspection()" disabled title="Scan QR Code and complete PMS validation before starting">
+            <button class="btn-start" id="btnStartInspection" onclick="triggerStartInspection()" disabled title="Scan QR Code and wait for PMS server validation (CONFIG SUCCESSFUL) to activate START">
                 ▶ START
             </button>
         </div>
@@ -1327,6 +1516,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 setValidationState('idle', 'Scan to Validate');
                 btnStartInspection.disabled = true;
                 btnStartInspection.classList.remove('ready-pulse');
+                pmsPayloadsCache = null;
                 document.getElementById('footerStatus').innerText = "Scan QR Code or enter Device Serial No. to validate with server and activate START.";
                 return;
             }
@@ -1341,8 +1531,9 @@ HTML_PAGE = """<!DOCTYPE html>
             isValidating = true;
             btnStartInspection.disabled = true;
             btnStartInspection.classList.remove('ready-pulse');
-            setValidationState('validating', '⏳ Validating PMS...');
-            document.getElementById('footerStatus').innerText = "Validating with server (Whitelisting, SerialNo, StatusValidation)...";
+            pmsPayloadsCache = null; // Important: "else these json fields will stay empty"
+            setValidationState('validating', '⏳ Sending Payloads...');
+            document.getElementById('footerStatus').innerText = "Sending Whitelisting, SerialNo, and StatusValidation payloads to server. Waiting for CONFIG SUCCESSFUL...";
 
             try {
                 const res = await fetch('/api/pms/validate', {
@@ -1354,25 +1545,55 @@ HTML_PAGE = """<!DOCTYPE html>
 
                 if (res.ok && data.validated) {
                     currentValidatedCode = rawVal;
+                    // Response received from server, UtcRequest_ID matched, CONFIG SUCCESSFUL
+                    pmsPayloadsCache = data.payloads;
+                    pmsPayloadsCache.server_responses = data.server_responses || {};
+                    pmsPayloadsCache._forDevice = rawVal;
                     setValidationState('success', '✔ CONFIG SUCCESSFUL');
                     btnStartInspection.disabled = false;
                     btnStartInspection.classList.add('ready-pulse');
                     document.getElementById('footerStatus').innerText = `✔ Server responded CONFIG SUCCESSFUL for Serial [${data.serial_no}], APO [${data.apo_id}]. START button ACTIVATED.`;
+
+                    // Display popup when config is successful
+                    showConfigResultPopup(true, {
+                        title: "PMS Configuration Successful",
+                        serial_no: data.serial_no,
+                        apo_id: data.apo_id,
+                        message: "All 3 validation payloads (Whitelisting, SerialNo, Status) confirmed CONFIG SUCCESSFUL by server. The START button is now ACTIVATED."
+                    });
                 } else {
                     currentValidatedCode = null;
+                    pmsPayloadsCache = null; // fields stay empty!
                     setValidationState('failed', '✖ Validation Failed');
                     btnStartInspection.disabled = true;
                     btnStartInspection.classList.remove('ready-pulse');
-                    const errMsg = data.message || 'Server rejected configuration';
+                    const errMsg = data.message || 'Server rejected configuration or request ID mismatched.';
                     document.getElementById('footerStatus').innerText = `✖ PMS Validation Failed: ${errMsg}. START button remains disabled.`;
-                    alert(`PMS Validation Failed: ${errMsg}`);
+
+                    // Display popup when config is unsuccessful
+                    showConfigResultPopup(false, {
+                        title: "PMS Configuration Failed",
+                        serial_no: data.serial_no || rawVal,
+                        apo_id: data.apo_id,
+                        error: errMsg,
+                        message: "Server rejected configuration or request ID mismatched. START button remains disabled and JSON fields stay empty."
+                    });
                 }
             } catch (err) {
                 currentValidatedCode = null;
+                pmsPayloadsCache = null; // fields stay empty!
                 setValidationState('failed', '✖ Server Error');
                 btnStartInspection.disabled = true;
                 btnStartInspection.classList.remove('ready-pulse');
-                document.getElementById('footerStatus').innerText = `✖ Cannot reach PMS validation service: ${err.message}`;
+                document.getElementById('footerStatus').innerText = `✖ Cannot reach PMS validation service: ${err.message}. START button disabled.`;
+
+                // Display popup when config is unsuccessful due to network/timeout error
+                showConfigResultPopup(false, {
+                    title: "PMS Connection Error / Timeout",
+                    serial_no: rawVal,
+                    error: err.message,
+                    message: "Cannot reach PMS validation service or server response timed out. START button remains disabled."
+                });
             } finally {
                 isValidating = false;
             }
@@ -1385,13 +1606,26 @@ HTML_PAGE = """<!DOCTYPE html>
             badge.innerText = text;
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initCameraDevices();
+        function focusQrInput() {
+            if (deviceSerialInput) {
+                deviceSerialInput.focus();
+                if (deviceSerialInput.value) {
+                    deviceSerialInput.select();
+                }
+            }
+        }
 
-            // Initial state: START button disabled until validation succeeds
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Immediate auto-focus as soon as app opens or reloads
+            focusQrInput();
+            setTimeout(focusQrInput, 50);
+            setTimeout(focusQrInput, 300);
+
+            // Initial state: START button disabled until validation succeeds with CONFIG SUCCESSFUL
             btnStartInspection.disabled = true;
             btnStartInspection.classList.remove('ready-pulse');
             setValidationState('idle', 'Scan to Validate');
+            pmsPayloadsCache = null;
 
             // QR scanner enters text into text box and fires Enter to validate
             deviceSerialInput.addEventListener('keydown', (e) => {
@@ -1408,12 +1642,13 @@ HTML_PAGE = """<!DOCTYPE html>
                 if (val !== currentValidatedCode) {
                     btnStartInspection.disabled = true;
                     btnStartInspection.classList.remove('ready-pulse');
+                    pmsPayloadsCache = null; // Keep JSON fields empty until server confirms
                     if (!val) {
                         setValidationState('idle', 'Scan to Validate');
                         document.getElementById('footerStatus').innerText = "Scan QR Code or enter Device Serial No. to validate with server and activate START.";
                     } else {
                         setValidationState('idle', 'Press Enter to Validate');
-                        document.getElementById('footerStatus').innerText = "Device ID changed. Press Enter or scan to validate with PMS server.";
+                        document.getElementById('footerStatus').innerText = "Device ID entered. Press Enter or scan to send payloads and validate with PMS server.";
                     }
                 }
 
@@ -1424,21 +1659,51 @@ HTML_PAGE = """<!DOCTYPE html>
                         if (val !== currentValidatedCode) {
                             validateScannedDevice();
                         }
-                    }, 400);
+                    }, 350);
                 }
             });
 
-            // Spacebar shortcut only triggers inspection when START is enabled
+            await initCameraDevices();
+
+            // Re-focus after camera stream initialization completes
+            focusQrInput();
+            setTimeout(focusQrInput, 500);
+
+            // Keyboard shortcuts: Spacebar triggers inspection; Esc dismisses active toast
             window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const activeToast = document.querySelector('.config-toast.show');
+                    if (activeToast) {
+                        dismissToast(activeToast);
+                    }
+                }
                 if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                     e.preventDefault();
                     if (!btnStartInspection.disabled) {
                         triggerStartInspection();
                     } else {
-                        document.getElementById('footerStatus').innerText = "⚠️ START is disabled: Please scan QR and complete PMS validation with server first.";
+                        document.getElementById('footerStatus').innerText = "⚠️ START is disabled: QR must be scanned and validated by server (CONFIG SUCCESSFUL) first.";
                     }
                 }
             });
+        });
+
+        // Also ensure textbox is focused on window load and window focus/switch
+        window.addEventListener('load', () => {
+            focusQrInput();
+            setTimeout(focusQrInput, 200);
+        });
+
+        window.addEventListener('focus', () => {
+            focusQrInput();
+        });
+
+        // Auto re-focus textbox when clicking outside interactive controls
+        document.addEventListener('click', (e) => {
+            const tag = e.target.tagName;
+            if (tag !== 'BUTTON' && tag !== 'SELECT' && tag !== 'INPUT' && tag !== 'TEXTAREA' && !e.target.closest('#pmsJsonModal') && !e.target.closest('#configToastContainer') && !e.target.closest('.modal-content')) {
+                focusQrInput();
+            }
         });
 
         function clearQrInput() {
@@ -1449,7 +1714,7 @@ HTML_PAGE = """<!DOCTYPE html>
             btnStartInspection.classList.remove('ready-pulse');
             setValidationState('idle', 'Scan to Validate');
             document.getElementById('footerStatus').innerText = "Ready. Scan QR Code (Id: ..; Sr: ..;) to validate and activate START.";
-            deviceSerialInput.focus();
+            focusQrInput();
         }
 
         async function initCameraDevices() {
@@ -1674,7 +1939,6 @@ HTML_PAGE = """<!DOCTYPE html>
             if (!rawTopBase64 || !rawOrig3Base64) {
                 alert("Please ensure both Top View and Origin View images are available via live cameras or upload.");
                 btnStartInspection.disabled = false;
-                btnStartInspection.classList.add('ready-pulse');
                 return;
             }
 
@@ -1705,8 +1969,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 btnStartInspection.classList.remove('ready-pulse');
                 currentValidatedCode = null;
                 setValidationState('idle', 'Scan Next QR');
-                deviceSerialInput.select();
-                deviceSerialInput.focus();
+                focusQrInput();
             }
         }
 
@@ -1931,6 +2194,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     const existingReport = pmsPayloadsCache ? pmsPayloadsCache.ReportStore : null;
                     if (data && data.payloads) {
                         pmsPayloadsCache = data.payloads;
+                        pmsPayloadsCache.server_responses = data.server_responses || {};
                         pmsPayloadsCache._forDevice = rawVal;
                         // If we have an actual completed inspection report cached (not empty), retain it
                         if (existingReport && existingReport.ColumnsName && existingReport.ColumnsName[0] && existingReport.ColumnsName[0].TaktTime !== "") {
@@ -1960,6 +2224,7 @@ HTML_PAGE = """<!DOCTYPE html>
             if (tab === 'whitelist') document.getElementById('tabWhitelist')?.classList.add('active');
             if (tab === 'serial') document.getElementById('tabSerial')?.classList.add('active');
             if (tab === 'status') document.getElementById('tabStatus')?.classList.add('active');
+            if (tab === 'responses') document.getElementById('tabResponses')?.classList.add('active');
             renderPmsModalJson();
         }
 
@@ -1974,6 +2239,7 @@ HTML_PAGE = """<!DOCTYPE html>
             if (activePmsTab === 'whitelist') jsonTarget = pmsPayloadsCache.DeviceAutoWhitelisting;
             if (activePmsTab === 'serial') jsonTarget = pmsPayloadsCache.SerialNoValidation;
             if (activePmsTab === 'status') jsonTarget = pmsPayloadsCache.StatusValidation;
+            if (activePmsTab === 'responses') jsonTarget = pmsPayloadsCache.server_responses || {};
             pre.innerText = JSON.stringify(jsonTarget || {}, null, 2);
         }
 
@@ -1985,6 +2251,92 @@ HTML_PAGE = """<!DOCTYPE html>
                 btn.innerText = '✔ Copied!';
                 setTimeout(() => btn.innerText = orig, 1500);
             });
+        }
+
+        // Slide In/Out Config Toast Popup for Success or Failure
+        function showConfigResultPopup(isSuccess, info) {
+            const container = document.getElementById('configToastContainer');
+            if (!container) return;
+
+            // Remove previous toasts to keep display clean and focused
+            container.innerHTML = '';
+
+            const toast = document.createElement('div');
+            toast.className = `config-toast ${isSuccess ? 'success' : 'failed'}`;
+
+            const duration = isSuccess ? 3200 : 4200; // 3.2s on success, 4.2s on error
+
+            const title = info.title || (isSuccess ? 'PMS Configuration Successful' : 'PMS Configuration Failed');
+            const badgeText = isSuccess ? 'CONFIG SUCCESSFUL' : 'CONFIG FAILED';
+            const bodyMsg = isSuccess
+                ? (info.message || 'All 3 validation payloads confirmed. START button ACTIVATED.')
+                : (info.error ? `Reason: ${info.error}` : (info.message || 'Server rejected configuration.'));
+
+            const serialText = info.serial_no ? `<span>Serial: <strong>${escapeHtml(info.serial_no)}</strong></span>` : '';
+            const apoText = info.apo_id ? `<span>APO: <strong>${escapeHtml(info.apo_id)}</strong></span>` : '';
+            const metaHtml = (serialText || apoText) ? `<div class="toast-meta">${serialText}${apoText}</div>` : '';
+
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <div class="toast-icon ${isSuccess ? 'success' : 'failed'}">
+                        ${isSuccess ? '✔' : '✖'}
+                    </div>
+                    <div class="toast-text">
+                        <div class="toast-header-row">
+                            <span class="toast-title">${escapeHtml(title)}</span>
+                            <span class="toast-badge ${isSuccess ? 'success' : 'failed'}">${badgeText}</span>
+                            <button class="toast-close-btn" onclick="dismissToast(this.closest('.config-toast'))" title="Dismiss">&times;</button>
+                        </div>
+                        <div class="toast-body">${escapeHtml(bodyMsg)}</div>
+                        ${metaHtml}
+                    </div>
+                </div>
+                <div class="toast-progress">
+                    <div class="toast-progress-bar ${isSuccess ? 'success' : 'failed'}" style="animation: toastProgressCountdown ${duration / 1000}s linear forwards;"></div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Slide in smoothly
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            // Automatically slide out and remove after short amount of time
+            const hideTimer = setTimeout(() => {
+                dismissToast(toast);
+            }, duration);
+            toast._hideTimer = hideTimer;
+
+            // Click to dismiss early if desired
+            toast.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    dismissToast(toast);
+                }
+            });
+
+            // Textbox always remains active and focused
+            focusQrInput();
+        }
+
+        function dismissToast(toast) {
+            if (!toast || toast.classList.contains('hide')) return;
+            clearTimeout(toast._hideTimer);
+            toast.classList.remove('show');
+            toast.classList.add('hide');
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 360);
+            focusQrInput();
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, (m) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
         }
 
         // MQTT connection status indicator
@@ -2038,6 +2390,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 <button class="modal-tab" id="tabWhitelist" onclick="switchModalTab('whitelist')">1. Whitelisting</button>
                 <button class="modal-tab" id="tabSerial" onclick="switchModalTab('serial')">2. Serial Validation</button>
                 <button class="modal-tab" id="tabStatus" onclick="switchModalTab('status')">3. Status Validation</button>
+                <button class="modal-tab" id="tabResponses" onclick="switchModalTab('responses')">5. Server Responses</button>
             </div>
             <pre id="pmsJsonPre" class="modal-pre">Loading JSON...</pre>
             <div class="modal-footer">
@@ -2046,6 +2399,9 @@ HTML_PAGE = """<!DOCTYPE html>
             </div>
         </div>
     </div>
+
+    <!-- Slide In/Out Config Toast Container -->
+    <div id="configToastContainer"></div>
 </body>
 </html>
 """
@@ -2085,7 +2441,8 @@ validated_device_cache = {
     "serial_no": None,
     "apo_id": None,
     "timestamp": 0.0,
-    "raw_input": None
+    "raw_input": None,
+    "payloads": None
 }
 
 @app.route("/api/pms/validate", methods=["POST"])
@@ -2094,8 +2451,10 @@ def pms_validate_endpoint():
     Validates a scanned device against PMS MQTT server before activating the START button:
     1. Extracts APoNumberId and DeviceSerialNo from scanned QR text (e.g. 'Id: ..; Sr: ..;').
     2. Sends DeviceAutoWhitelisting, SerialNoValidation, and StatusValidation sequentially.
-    3. Confirms that the server responds with CmdType='ResponseFromServer' and RequestStatus='CONFIG SUCCESSFUL'.
-    4. Caches the authorization so that the START button can run inspection.
+    3. Confirms that the server responds with CmdType='ResponseFromServer', matching UtcRequest_ID,
+       and RequestStatus='CONFIG SUCCESSFUL'.
+    4. Caches the authorization and validated payloads so that the START button is activated
+       and JSON payloads are populated.
     """
     global validated_device_cache
     data = request.get_json() or {}
@@ -2105,7 +2464,9 @@ def pms_validate_endpoint():
         return jsonify({
             "status": "error",
             "validated": False,
-            "message": "No serial number or QR code provided. Please scan a QR code first."
+            "message": "No serial number or QR code provided. Please scan a QR code first.",
+            "payloads": build_empty_payloads(),
+            "server_responses": {}
         }), 400
 
     apo_id, serial_no = parse_sticker(device_id)
@@ -2115,16 +2476,21 @@ def pms_validate_endpoint():
         print(f"[PMS VALIDATION GATE] Validating scanned device: Serial={serial_no}, APO={apo_id}...")
         print("=" * 60)
 
-        pms_mqtt.run_startup_validation(
+        res = pms_mqtt.run_startup_validation(
             device_serial_no=serial_no,
             apo_number_id=apo_id
         )
+
+        validated_payloads = res.get("payloads") or {}
+        server_responses = res.get("server_responses") or {}
 
         validated_device_cache = {
             "serial_no": serial_no,
             "apo_id": apo_id,
             "timestamp": time.time(),
-            "raw_input": device_id
+            "raw_input": device_id,
+            "payloads": validated_payloads,
+            "server_responses": server_responses
         }
 
         print(f"[PMS VALIDATION GATE] All 3 validations confirmed CONFIG SUCCESSFUL for {serial_no}. START button enabled.\n")
@@ -2135,6 +2501,8 @@ def pms_validate_endpoint():
             "serial_no": serial_no,
             "apo_id": apo_id,
             "raw_qr": device_id,
+            "payloads": validated_payloads,
+            "server_responses": server_responses,
             "message": f"Server responded CONFIG SUCCESSFUL for Whitelisting, SerialNo, and StatusValidation. START button activated."
         })
 
@@ -2144,7 +2512,9 @@ def pms_validate_endpoint():
             "serial_no": None,
             "apo_id": None,
             "timestamp": 0.0,
-            "raw_input": None
+            "raw_input": None,
+            "payloads": None,
+            "server_responses": None
         }
         return jsonify({
             "status": "error",
@@ -2152,7 +2522,9 @@ def pms_validate_endpoint():
             "serial_no": serial_no,
             "apo_id": apo_id,
             "raw_qr": device_id,
-            "message": str(exc)
+            "message": str(exc),
+            "payloads": build_empty_payloads(),
+            "server_responses": {}
         }), 503
 
 @app.route("/api/inspect", methods=["POST"])
@@ -2164,40 +2536,33 @@ def inspect_endpoint():
 
     apo_id, serial_no = parse_sticker(device_id)
 
-    # Check if this device already completed startup validation with CONFIG SUCCESSFUL within last 5 minutes
+    # Pre-Inspection Validation Gate:
+    # START inspection must ONLY proceed if DeviceAutoWhitelisting, SerialNoValidation,
+    # and StatusValidation were sent and server responded CONFIG SUCCESSFUL matching UtcRequest_ID.
     now_t = time.time()
     is_prevalidated = (
         validated_device_cache.get("serial_no") == serial_no
-        and (now_t - validated_device_cache.get("timestamp", 0.0)) < 300.0
+        and validated_device_cache.get("payloads") is not None
+        and (now_t - validated_device_cache.get("timestamp", 0.0)) < 600.0
     )
 
     if not is_prevalidated:
-        try:
-            print(f"[PMS] Running startup validation for Serial={serial_no}, APO={apo_id}...")
-            pms_mqtt.run_startup_validation(
-                device_serial_no=serial_no,
-                apo_number_id=apo_id
-            )
-            print("[PMS] All three validations succeeded with CONFIG SUCCESSFUL. Starting inspection.")
-        except Exception as exc:
-            print(f"[PMS] Pre-inspection validation failed: {exc}")
-            return jsonify({
-                "status": "error",
-                "stage": "pms_validation",
-                "message": str(exc),
-                "inspection_started": False
-            }), 503
-    else:
-        print(f"[PMS] Pre-validation verified (CONFIG SUCCESSFUL) for Serial={serial_no}. Starting inspection directly.")
+        print(f"[PMS GATE] Blocked unvalidated inspection attempt for Serial={serial_no}.")
+        return jsonify({
+            "status": "error",
+            "stage": "pms_validation",
+            "message": "Device not validated. Payloads must be sent and server must respond CONFIG SUCCESSFUL with matching UtcRequest_ID before START is allowed.",
+            "inspection_started": False
+        }), 403
 
-    # Reset cache after starting inspection so each board requires a fresh validation
+    # Reset cache after starting inspection so each board requires a fresh scan and validation
     validated_device_cache = {
         "serial_no": None,
         "apo_id": None,
         "timestamp": 0.0,
-        "raw_input": None
+        "raw_input": None,
+        "payloads": None
     }
-
 
     top_img_data = data.get("top_image")
     orig3_img_data = data.get("orig3_image") or data.get("orig2_image")
@@ -2413,7 +2778,8 @@ def inspect_endpoint():
 def pms_payloads_endpoint():
     """
     Returns all 4 required PMS JSON payloads.
-    Before scanning anything and before doing anything, all fields in the JSON will be empty.
+    The JSON fields will stay empty until the device has been scanned AND
+    the server has responded with matching UtcRequest_ID and CONFIG SUCCESSFUL.
     """
     device_id = str(request.args.get("device_id") or "").strip()
 
@@ -2425,18 +2791,36 @@ def pms_payloads_endpoint():
             "scanned_serial_no": "",
             "device_serial_no": "",
             "apo_number_id": "",
-            "payloads": build_empty_payloads()
+            "payloads": build_empty_payloads(),
+            "server_responses": {}
         })
 
     apo_id, serial_no = parse_sticker(device_id)
+
+    # Check if this exact device has completed server validation with CONFIG SUCCESSFUL
+    is_validated = (
+        validated_device_cache.get("serial_no") == serial_no
+        and validated_device_cache.get("payloads") is not None
+        and (time.time() - validated_device_cache.get("timestamp", 0.0)) < 600.0
+    )
+
+    if not is_validated:
+        # User requirement: "else these json fields will stay empty"
+        return jsonify({
+            "status": "unvalidated",
+            "detected_mac": "",
+            "raw_qr": device_id,
+            "scanned_serial_no": serial_no,
+            "device_serial_no": "",
+            "apo_number_id": "",
+            "payloads": build_empty_payloads(),
+            "server_responses": {}
+        })
+
+    # Device is confirmed validated by server! Return the validated payloads.
     mac = get_pc_mac_address()
-
-    _, p1 = build_device_autowhitelisting(mac)
-    _, p2 = build_serial_no_validation(serial_no, apo_id, mac)
-    _, p3 = build_status_validation(serial_no, apo_id, mac)
-    # Before running inspection ("before doing anything"), ReportStore results remain empty
-    p4 = build_empty_report_store(device_serial_no=serial_no, apo_number_id=apo_id, mac_id=mac)
-
+    validated_payloads = validated_device_cache.get("payloads") or {}
+    server_responses = validated_device_cache.get("server_responses") or {}
     return jsonify({
         "status": "success",
         "detected_mac": mac,
@@ -2444,12 +2828,8 @@ def pms_payloads_endpoint():
         "scanned_serial_no": serial_no,
         "device_serial_no": serial_no,
         "apo_number_id": apo_id,
-        "payloads": {
-            "DeviceAutoWhitelisting": p1,
-            "SerialNoValidation": p2,
-            "StatusValidation": p3,
-            "ReportStore": p4
-        }
+        "payloads": validated_payloads,
+        "server_responses": server_responses
     })
 
 def open_browser():
@@ -2458,14 +2838,14 @@ def open_browser():
     opened = False
     try:
         opened = webbrowser.open(url, new=2)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[Browser] webbrowser.open: {e}")
     if not opened and sys.platform.startswith("win"):
         try:
             import subprocess
-            subprocess.run(f"start {url}", shell=True)
-        except Exception:
-            pass
+            subprocess.run(f'start "" "{url}"', shell=True)
+        except Exception as e:
+            print(f"[Browser] start command: {e}")
 
 # if __name__ == "__main__":
 #     print("\n" + "="*65)
