@@ -1,21 +1,21 @@
 {
     "CmdType": "ReportStore",
-    "UtcRequest_ID": "17927470371001169247861292216496",
-    "Device_MAC_ID": "88:AE:DD:B6:03:5D",
+    "UtcRequest_ID": "17930803843575074527307811907534",
+    "Device_MAC_ID": "D0:F4:05:FD:5D:C8",
     "TableName": "Z_VI_TEST",
     "ColumnsName": [
         {
-            "APoNumberId": "56",
-            "RowCreationTimeStamp": 1792747037100,
-            "RowUpdationTimeStamp": 1792747037100,
-            "WifiMasterMacid": "88:AE:DD:B6:03:5D",
-            "WifiDate": "23-October-2026, Friday",
-            "WifiTime": "14:47:17",
+            "APoNumberId": "17",
+            "RowCreationTimeStamp": 1793080384357,
+            "RowUpdationTimeStamp": 1793080384357,
+            "WifiMasterMacid": "D0:F4:05:FD:5D:C8",
+            "WifiDate": "27-October-2026, Tuesday",
+            "WifiTime": "11:23:04",
             "PlcJigProductionLineNo": "1",
-            "DeviceSerialNo": "001260101010122505100002640000142",
-            "TaktTime": 0.052,
+            "DeviceSerialNo": "001260101010112105100002607001973",
+            "TaktTime": 0.215,
             "JigUid": "CGJIGxxxxxxxxxx00111",
-            "WireOrigin": 0,
+            "WireOrigin": 1,
             "ViTest": 0
         }
     ]

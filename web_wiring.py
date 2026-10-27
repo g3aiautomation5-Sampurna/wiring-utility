@@ -1973,15 +1973,24 @@ HTML_PAGE = """<!DOCTYPE html>
             }
         }
 
+        
+        
         function applyResults(data, deviceId) {
             resTopWiresAnnotated = data.top_wires_annotated;
             resTopOriginsAnnotated = data.top_origins_annotated;
             resOrig3Annotated = data.orig3_annotated || data.orig2_annotated;
 
             const r = data.results || {};
-            const combinedPass = data.combined_pass;
 
-            setPill('pillOrig3Grommet', r.orig3_grommet_pass ?? r.orig2_grommet_pass);
+            // Final verdict comes from the backend after PMS validation.
+            const finalVerdict = data.verdict || "SERVER UNREACHABLE";
+            const pmsStatus = data.pms_report_status || "UNREACHABLE";
+            const pmsResponse = data.pms_mqtt_response || {};
+
+            setPill(
+                'pillOrig3Grommet',
+                r.orig3_grommet_pass ?? r.orig2_grommet_pass
+            );
             setPill('pillObl', r.obl_pass);
             setPill('pillOum', r.oum_pass);
             setPill('pillObr', r.obr_pass);
@@ -1994,32 +2003,78 @@ HTML_PAGE = """<!DOCTYPE html>
             const verdictDevice = document.getElementById('verdictDevice');
             const verdictDesc = document.getElementById('verdictDesc');
 
-            const displayId = data.serial_no ? (data.apo_id ? `${data.serial_no} (APO: ${data.apo_id})` : data.serial_no) : deviceId;
+            const displayId = data.serial_no
+                ? (
+                    data.apo_id
+                        ? `${data.serial_no} (APO: ${data.apo_id})`
+                        : data.serial_no
+                )
+                : deviceId;
+
             verdictDevice.innerText = `Device: ${displayId}`;
 
-            if (combinedPass) {
-                banner.className = "verdict-box pass";
-                verdictText.innerText = "PASS";
-                verdictDesc.innerText = "All checks passed. Logged to Inspection_Log.xlsx";
-            } else {
+            // Display the final outcome, not data.combined_pass.
+            if (finalVerdict === "SERVER UNREACHABLE") {
+                banner.className = "verdict-box fail";
+                verdictText.innerText = "SERVER UNREACHABLE";
+
+                verdictDesc.innerText =
+                    pmsResponse.message ||
+                    "No matching response received from PMS. Please check the server and MQTT connection.";
+
+            } else if (pmsStatus === "REJECTED") {
                 banner.className = "verdict-box fail";
                 verdictText.innerText = "FAIL";
-                verdictDesc.innerText = "Check failed. Logged to Inspection_Log.xlsx";
+
+                const reason =
+                    data.pms_rejection_reason ||
+                    pmsResponse.reason ||
+                    pmsResponse.request_status ||
+                    "PMS rejected the ReportStore request.";
+
+                verdictDesc.innerText = `PMS rejected ReportStore: ${reason}`;
+
+            } else if (pmsStatus === "ACCEPTED" && finalVerdict === "PASS") {
+                banner.className = "verdict-box pass";
+                verdictText.innerText = "PASS";
+                verdictDesc.innerText =
+                    "AI inspection passed and PMS accepted ReportStore.";
+
+            } else if (pmsStatus === "ACCEPTED" && finalVerdict === "FAIL") {
+                banner.className = "verdict-box fail";
+                verdictText.innerText = "FAIL";
+                verdictDesc.innerText =
+                    "AI inspection failed. PMS accepted ReportStore.";
+
+            } else {
+                // Fail safely if the backend did not provide a recognized
+                // final verdict and PMS validation status.
+                banner.className = "verdict-box fail";
+                verdictText.innerText = "SERVER UNREACHABLE";
+                verdictDesc.innerText =
+                    "PMS validation status is missing or invalid. Check the backend logs.";
             }
 
             if (data.notes) {
                 document.getElementById('diagLog').innerText = data.notes;
             }
 
-            // Immediately cache the real PMS report (PASS or FAIL) from this run
+            // Cache the ReportStore payload generated for this run.
             if (data.pms_report_json) {
-                if (!pmsPayloadsCache) pmsPayloadsCache = {};
+                if (!pmsPayloadsCache) {
+                    pmsPayloadsCache = {};
+                }
+
                 pmsPayloadsCache.ReportStore = data.pms_report_json;
             }
 
-            document.getElementById('footerStatus').innerText = `Inspection complete (${combinedPass ? 'PASS' : 'FAIL'}). Logged Device [${deviceId}] to Result/Inspection_Log.xlsx and saved PMS JSON.`;
+            document.getElementById('footerStatus').innerText =
+                `Inspection finished (${verdictText.innerText}). ` +
+                `Device [${deviceId}]. PMS status: ${pmsStatus}.`;
+
             setViewMode('res_top_wires');
         }
+
 
         async function openExcelSheet() {
             try {
@@ -2723,23 +2778,76 @@ def inspect_endpoint():
         with open(latest_overall_json, "w", encoding="utf-8") as f:
             json.dump(pms_report_payload, f, indent=4)
 
+        # response_payload["pms_report_json"] = pms_report_payload
+        # response_payload["pms_json_file"] = folder_json_path
+        # response_payload["verdict"] = verdict_label
+
+        # # Publish the actual inspection result to PMS.(Aryan)
+        # try:
+        #     pms_response = pms_mqtt.publish_report(
+        #         pms_report_payload
+        #     )
+        #     response_payload["pms_mqtt_response"] = pms_response
+
+        # except Exception as exc:
+        #     print(f"[PMS] ReportStore publish error: {exc}")
+        #     response_payload["pms_mqtt_response"] = {
+        #         "received": False,
+        #         "message": str(exc)
+        #     }
+
+        
         response_payload["pms_report_json"] = pms_report_payload
         response_payload["pms_json_file"] = folder_json_path
-        response_payload["verdict"] = verdict_label
 
-        # Publish the actual inspection result to PMS.(Aryan)
+        # Keep the AI inspection result separate from the final verdict.
+        response_payload["ai_verdict"] = verdict_label
+
+        # Publish ReportStore and wait for PMS validation.
         try:
             pms_response = pms_mqtt.publish_report(
                 pms_report_payload
             )
+
             response_payload["pms_mqtt_response"] = pms_response
+
+            if (
+                pms_response.get("received") is True
+                and pms_response.get("accepted") is True
+            ):
+                # PMS accepted ReportStore: use the AI inspection verdict.
+                response_payload["verdict"] = verdict_label
+                response_payload["pms_report_status"] = "ACCEPTED"
+
+            elif pms_response.get("received") is True:
+                # PMS responded but did not accept ReportStore.
+                response_payload["verdict"] = "FAIL"
+                response_payload["pms_report_status"] = "REJECTED"
+
+                response_payload["pms_rejection_reason"] = (
+                    pms_response.get("reason")
+                    or pms_response.get("request_status")
+                    or "PMS rejected the ReportStore request."
+                )
+
+            else:
+                # No matching PMS response after the retry attempts.
+                response_payload["verdict"] = "SERVER UNREACHABLE"
+                response_payload["pms_report_status"] = "UNREACHABLE"
 
         except Exception as exc:
             print(f"[PMS] ReportStore publish error: {exc}")
+
             response_payload["pms_mqtt_response"] = {
                 "received": False,
+                "accepted": False,
                 "message": str(exc)
             }
+
+
+            response_payload["verdict"] = "SERVER UNREACHABLE"
+            response_payload["pms_report_status"] = "UNREACHABLE"
+
 
         notes_lines.append(f"\n📡 PMS JSON REPORT ({verdict_label}):")
         notes_lines.append(f" • Verdict: {verdict_label} (ViTest: {1 if combined_pass else 0}, WireOrigin: {1 if origins_all_pass else 0})")

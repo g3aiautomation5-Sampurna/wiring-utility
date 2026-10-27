@@ -1,9 +1,10 @@
-('C:\\Users\\SM 461\\Desktop\\Try 2\\dist\\web_wiring.exe',
+('C:\\Users\\SM '
+ '470\\Desktop\\wiriing_project\\wiring-utility\\dist\\web_wiring.exe',
  True,
  False,
  False,
  'C:\\Users\\SM '
- '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\bootloader\\images\\icon-console.ico',
+ '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\bootloader\\images\\icon-console.ico',
  None,
  False,
  False,
@@ -30,713 +31,540 @@
  None,
  None,
  None,
- 'C:\\Users\\SM 461\\Desktop\\Try 2\\build\\web_wiring\\web_wiring.pkg',
+ 'C:\\Users\\SM '
+ '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\web_wiring.pkg',
  [('pyi-contents-directory _internal', '', 'OPTION'),
   ('PYZ-00.pyz',
-   'C:\\Users\\SM 461\\Desktop\\Try 2\\build\\web_wiring\\PYZ-00.pyz',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\PYZ-00.pyz',
    'PYZ'),
   ('struct',
-   'C:\\Users\\SM 461\\Desktop\\Try '
-   '2\\build\\web_wiring\\localpycs\\struct.pyc',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\localpycs\\struct.pyc',
    'PYMODULE'),
   ('pyimod01_archive',
-   'C:\\Users\\SM 461\\Desktop\\Try '
-   '2\\build\\web_wiring\\localpycs\\pyimod01_archive.pyc',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\localpycs\\pyimod01_archive.pyc',
    'PYMODULE'),
   ('pyimod02_importers',
-   'C:\\Users\\SM 461\\Desktop\\Try '
-   '2\\build\\web_wiring\\localpycs\\pyimod02_importers.pyc',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\localpycs\\pyimod02_importers.pyc',
    'PYMODULE'),
   ('pyimod03_ctypes',
-   'C:\\Users\\SM 461\\Desktop\\Try '
-   '2\\build\\web_wiring\\localpycs\\pyimod03_ctypes.pyc',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\localpycs\\pyimod03_ctypes.pyc',
    'PYMODULE'),
   ('pyimod04_pywin32',
-   'C:\\Users\\SM 461\\Desktop\\Try '
-   '2\\build\\web_wiring\\localpycs\\pyimod04_pywin32.pyc',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\localpycs\\pyimod04_pywin32.pyc',
    'PYMODULE'),
   ('pyiboot01_bootstrap',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
    'PYSOURCE'),
   ('pyi_rth_inspect',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
-   'PYSOURCE'),
-  ('pyi_rth_multiprocessing',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
    'PYSOURCE'),
   ('pyi_rth_pkgutil',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
    'PYSOURCE'),
-  ('pyi_rth_cryptography_openssl',
+  ('pyi_rth_multiprocessing',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_cryptography_openssl.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
    'PYSOURCE'),
   ('pyi_rth_setuptools',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
-   'PYSOURCE'),
-  ('pyi_rth_pkgres',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgres.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
    'PYSOURCE'),
   ('web_wiring',
-   'C:\\Users\\SM 461\\Desktop\\Try 2\\web_wiring.py',
+   'C:\\Users\\SM 470\\Desktop\\wiriing_project\\wiring-utility\\web_wiring.py',
    'PYSOURCE'),
-  ('python311.dll', 'C:\\Program Files\\Python311\\python311.dll', 'BINARY'),
+  ('python312.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\python312.dll',
+   'BINARY'),
+  ('numpy.libs\\libscipy_openblas64_-ed4f167a5330424524f45258e7ca2c8d.dll',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy.libs\\libscipy_openblas64_-ed4f167a5330424524f45258e7ca2c8d.dll',
+   'BINARY'),
   ('numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
-   'BINARY'),
-  ('numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
    'BINARY'),
   ('cv2\\opencv_videoio_ffmpeg500_64.dll',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\opencv_videoio_ffmpeg500_64.dll',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\opencv_videoio_ffmpeg500_64.dll',
    'BINARY'),
-  ('unicodedata.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\unicodedata.pyd',
-   'EXTENSION'),
-  ('select.pyd', 'C:\\Program Files\\Python311\\DLLs\\select.pyd', 'EXTENSION'),
-  ('_socket.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_socket.pyd',
-   'EXTENSION'),
   ('_decimal.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_decimal.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_decimal.pyd',
    'EXTENSION'),
   ('_hashlib.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_hashlib.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_hashlib.pyd',
+   'EXTENSION'),
+  ('unicodedata.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\unicodedata.pyd',
+   'EXTENSION'),
+  ('select.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\select.pyd',
+   'EXTENSION'),
+  ('_socket.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_socket.pyd',
+   'EXTENSION'),
+  ('_lzma.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_lzma.pyd',
+   'EXTENSION'),
+  ('_bz2.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_bz2.pyd',
+   'EXTENSION'),
+  ('_ssl.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_ssl.pyd',
    'EXTENSION'),
   ('_ctypes.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_ctypes.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_ctypes.pyd',
    'EXTENSION'),
-  ('_overlapped.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_overlapped.pyd',
+  ('_queue.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_queue.pyd',
    'EXTENSION'),
-  ('_ssl.pyd', 'C:\\Program Files\\Python311\\DLLs\\_ssl.pyd', 'EXTENSION'),
-  ('_queue.pyd', 'C:\\Program Files\\Python311\\DLLs\\_queue.pyd', 'EXTENSION'),
+  ('_wmi.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_wmi.pyd',
+   'EXTENSION'),
   ('_multiprocessing.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_multiprocessing.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_multiprocessing.pyd',
    'EXTENSION'),
   ('pyexpat.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\pyexpat.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\pyexpat.pyd',
+   'EXTENSION'),
+  ('markupsafe\\_speedups.cp312-win_amd64.pyd',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe\\_speedups.cp312-win_amd64.pyd',
+   'EXTENSION'),
+  ('_uuid.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_uuid.pyd',
+   'EXTENSION'),
+  ('_overlapped.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_overlapped.pyd',
    'EXTENSION'),
   ('_asyncio.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_asyncio.pyd',
-   'EXTENSION'),
-  ('_lzma.pyd', 'C:\\Program Files\\Python311\\DLLs\\_lzma.pyd', 'EXTENSION'),
-  ('_bz2.pyd', 'C:\\Program Files\\Python311\\DLLs\\_bz2.pyd', 'EXTENSION'),
-  ('win32\\win32evtlog.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\win32\\win32evtlog.pyd',
-   'EXTENSION'),
-  ('win32\\win32api.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\win32\\win32api.pyd',
-   'EXTENSION'),
-  ('tomli\\__init__.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\tomli\\__init__.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('tomli\\_parser.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\tomli\\_parser.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('tomli\\_types.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\tomli\\_types.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('tomli\\_re.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\tomli\\_re.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('markupsafe\\_speedups.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe\\_speedups.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('_uuid.pyd', 'C:\\Program Files\\Python311\\DLLs\\_uuid.pyd', 'EXTENSION'),
-  ('cryptography\\hazmat\\bindings\\_rust.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography\\hazmat\\bindings\\_rust.pyd',
-   'EXTENSION'),
-  ('_cffi_backend.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\_cffi_backend.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_asyncio.pyd',
    'EXTENSION'),
   ('_elementtree.pyd',
-   'C:\\Program Files\\Python311\\DLLs\\_elementtree.pyd',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\_elementtree.pyd',
    'EXTENSION'),
-  ('lxml\\etree.cp311-win_amd64.pyd',
+  ('PIL\\_webp.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\etree.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PIL\\_webp.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('lxml\\_elementpath.cp311-win_amd64.pyd',
+  ('PIL\\_imagingtk.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\_elementpath.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PIL\\_imagingtk.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('lxml\\sax.cp311-win_amd64.pyd',
+  ('PIL\\_avif.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\sax.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PIL\\_avif.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('lxml\\objectify.cp311-win_amd64.pyd',
+  ('PIL\\_imagingcms.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\objectify.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PIL\\_imagingcms.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('81d243bd2c585b0f4821__mypyc.cp311-win_amd64.pyd',
+  ('numpy\\_core\\_multiarray_umath.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\81d243bd2c585b0f4821__mypyc.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\_core\\_multiarray_umath.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('charset_normalizer\\cd.cp311-win_amd64.pyd',
+  ('numpy\\linalg\\_umath_linalg.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\charset_normalizer\\cd.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\linalg\\_umath_linalg.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('charset_normalizer\\md.cp311-win_amd64.pyd',
+  ('PIL\\_imaging.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\charset_normalizer\\md.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PIL\\_imaging.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('lxml\\html\\diff.cp311-win_amd64.pyd',
+  ('numpy\\_core\\_multiarray_tests.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\html\\diff.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\_core\\_multiarray_tests.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('lxml\\html\\_difflib.cp311-win_amd64.pyd',
+  ('numpy\\random\\mtrand.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\html\\_difflib.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\mtrand.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('lxml\\builder.cp311-win_amd64.pyd',
+  ('numpy\\random\\bit_generator.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\builder.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\bit_generator.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('PIL\\_webp.cp311-win_amd64.pyd',
+  ('numpy\\random\\_sfc64.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PIL\\_webp.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_sfc64.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('PIL\\_imagingtk.cp311-win_amd64.pyd',
+  ('numpy\\random\\_philox.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PIL\\_imagingtk.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_philox.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('PIL\\_avif.cp311-win_amd64.pyd',
+  ('numpy\\random\\_pcg64.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PIL\\_avif.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_pcg64.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('PIL\\_imagingcms.cp311-win_amd64.pyd',
+  ('numpy\\random\\_mt19937.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PIL\\_imagingcms.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_mt19937.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('PIL\\_imagingmath.cp311-win_amd64.pyd',
+  ('numpy\\random\\_generator.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PIL\\_imagingmath.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_generator.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('psutil\\_psutil_windows.pyd',
+  ('numpy\\random\\_common.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\psutil\\_psutil_windows.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_common.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('numpy\\_core\\_multiarray_umath.cp311-win_amd64.pyd',
+  ('numpy\\random\\_bounded_integers.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\_core\\_multiarray_umath.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\random\\_bounded_integers.cp312-win_amd64.pyd',
    'EXTENSION'),
-  ('win32\\win32pdh.pyd',
+  ('numpy\\fft\\_pocketfft_umath.cp312-win_amd64.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\win32\\win32pdh.pyd',
-   'EXTENSION'),
-  ('numpy\\linalg\\_umath_linalg.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\linalg\\_umath_linalg.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('PIL\\_imaging.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PIL\\_imaging.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\_core\\_multiarray_tests.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\_core\\_multiarray_tests.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\mtrand.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\mtrand.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\bit_generator.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\bit_generator.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_sfc64.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_sfc64.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_philox.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_philox.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_pcg64.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_pcg64.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_mt19937.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_mt19937.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_generator.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_generator.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_common.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_common.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\random\\_bounded_integers.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\random\\_bounded_integers.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('numpy\\fft\\_pocketfft_umath.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy\\fft\\_pocketfft_umath.cp311-win_amd64.pyd',
-   'EXTENSION'),
-  ('yaml\\_yaml.cp311-win_amd64.pyd',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\yaml\\_yaml.cp311-win_amd64.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy\\fft\\_pocketfft_umath.cp312-win_amd64.pyd',
    'EXTENSION'),
   ('cv2\\cv2.pyd',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\cv2.pyd',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\cv2.pyd',
    'EXTENSION'),
   ('VCRUNTIME140.dll',
-   'C:\\Program Files\\Python311\\VCRUNTIME140.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\VCRUNTIME140.dll',
    'BINARY'),
   ('VCRUNTIME140_1.dll',
-   'C:\\Program Files\\Python311\\VCRUNTIME140_1.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\VCRUNTIME140_1.dll',
    'BINARY'),
-  ('libcrypto-1_1.dll',
-   'C:\\Program Files\\Python311\\DLLs\\libcrypto-1_1.dll',
+  ('libcrypto-3.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\libcrypto-3.dll',
+   'BINARY'),
+  ('libssl-3.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\libssl-3.dll',
    'BINARY'),
   ('libffi-8.dll',
-   'C:\\Program Files\\Python311\\DLLs\\libffi-8.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs\\libffi-8.dll',
    'BINARY'),
-  ('libssl-1_1.dll',
-   'C:\\Program Files\\Python311\\DLLs\\libssl-1_1.dll',
+  ('python3.dll',
+   'C:\\Program '
+   'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\python3.dll',
    'BINARY'),
-  ('pywin32_system32\\pywintypes311.dll',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pywin32_system32\\pywintypes311.dll',
-   'BINARY'),
-  ('python3.dll', 'C:\\Program Files\\Python311\\python3.dll', 'BINARY'),
-  ('cryptography-49.0.0.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\INSTALLER',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
    'DATA'),
-  ('cryptography-49.0.0.dist-info\\METADATA',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\METADATA',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\METADATA',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\METADATA',
    'DATA'),
-  ('cryptography-49.0.0.dist-info\\RECORD',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\RECORD',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
    'DATA'),
-  ('cryptography-49.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\RECORD',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\RECORD',
    'DATA'),
-  ('cryptography-49.0.0.dist-info\\licenses\\LICENSE.BSD',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\INSTALLER',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\licenses\\LICENSE.BSD',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\INSTALLER',
    'DATA'),
-  ('cryptography-49.0.0.dist-info\\REQUESTED',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\REQUESTED',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
    'DATA'),
-  ('cryptography-49.0.0.dist-info\\licenses\\LICENSE.APACHE',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\REQUESTED',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\licenses\\LICENSE.APACHE',
-   'DATA'),
-  ('cryptography-49.0.0.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\WHEEL',
-   'DATA'),
-  ('cryptography-49.0.0.dist-info\\sboms\\sbom.json',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\sboms\\sbom.json',
-   'DATA'),
-  ('cryptography-49.0.0.dist-info\\licenses\\LICENSE',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cryptography-49.0.0.dist-info\\licenses\\LICENSE',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\RNG2Schtrn.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\RNG2Schtrn.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_svrl_for_xslt1.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_svrl_for_xslt1.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\XSD2Schtrn.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\XSD2Schtrn.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\readme.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\readme.txt',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_schematron_skeleton_for_xslt1.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_schematron_skeleton_for_xslt1.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_schematron_message.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_schematron_message.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_dsdl_include.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_dsdl_include.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_abstract_expand.xsl',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\xsl\\iso-schematron-xslt1\\iso_abstract_expand.xsl',
-   'DATA'),
-  ('lxml\\isoschematron\\resources\\rng\\iso-schematron.rng',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\lxml\\isoschematron\\resources\\rng\\iso-schematron.rng',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\REQUESTED',
    'DATA'),
   ('setuptools\\_vendor\\jaraco\\text\\Lorem ipsum.txt',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\jaraco\\text\\Lorem '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\setuptools\\_vendor\\jaraco\\text\\Lorem '
    'ipsum.txt',
-   'DATA'),
-  ('cv2\\load_config_py3.py',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\load_config_py3.py',
-   'DATA'),
-  ('cv2\\config-3.py',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\config-3.py',
    'DATA'),
   ('cv2\\config.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\config.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\config.py',
    'DATA'),
-  ('werkzeug-3.1.8.dist-info\\RECORD',
+  ('cv2\\config-3.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\werkzeug-3.1.8.dist-info\\RECORD',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\config-3.py',
    'DATA'),
-  ('flask-3.1.3.dist-info\\INSTALLER',
+  ('cv2\\load_config_py3.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\flask-3.1.3.dist-info\\INSTALLER',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\RECORD',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\RECORD',
-   'DATA'),
-  ('flask-3.1.3.dist-info\\entry_points.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\flask-3.1.3.dist-info\\entry_points.txt',
-   'DATA'),
-  ('flask-3.1.3.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\flask-3.1.3.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\DELVEWHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\DELVEWHEEL',
-   'DATA'),
-  ('pyreadline3-3.5.6.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pyreadline3-3.5.6.dist-info\\WHEEL',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\werkzeug-3.1.8.dist-info\\METADATA',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe-3.0.3.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\WHEEL',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\LICENSE.md',
-   'DATA'),
-  ('click-8.5.0.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\click-8.5.0.dist-info\\WHEEL',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe-3.0.3.dist-info\\WHEEL',
-   'DATA'),
-  ('click-8.5.0.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\click-8.5.0.dist-info\\INSTALLER',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('click-8.5.0.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\click-8.5.0.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
-   'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\REQUESTED',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\REQUESTED',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
-   'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\entry_points.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\entry_points.txt',
-   'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\RECORD',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\RECORD',
-   'DATA'),
-  ('flask-3.1.3.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\flask-3.1.3.dist-info\\METADATA',
-   'DATA'),
-  ('pyreadline3-3.5.6.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pyreadline3-3.5.6.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
-   'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\INSTALLER',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\LICENSE.txt',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\ma\\LICENSE',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\ma\\LICENSE',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\INSTALLER',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\werkzeug-3.1.8.dist-info\\INSTALLER',
-   'DATA'),
-  ('pyreadline3-3.5.6.dist-info\\INSTALLER',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pyreadline3-3.5.6.dist-info\\INSTALLER',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\top_level.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe-3.0.3.dist-info\\top_level.txt',
-   'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\METADATA',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\METADATA',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\RECORD',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\WHEEL',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
-   'DATA'),
-  ('flask-3.1.3.dist-info\\RECORD',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\flask-3.1.3.dist-info\\RECORD',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
-   'DATA'),
-  ('click-8.5.0.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\click-8.5.0.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.6.dist-info\\entry_points.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\entry_points.txt',
-   'DATA'),
-  ('pyreadline3-3.5.6.dist-info\\RECORD',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pyreadline3-3.5.6.dist-info\\RECORD',
-   'DATA'),
-  ('pyreadline3-3.5.6.dist-info\\top_level.txt',
-   'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pyreadline3-3.5.6.dist-info\\top_level.txt',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\load_config_py3.py',
    'DATA'),
   ('click-8.5.0.dist-info\\RECORD',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\click-8.5.0.dist-info\\RECORD',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\click-8.5.0.dist-info\\RECORD',
    'DATA'),
-  ('markupsafe-3.0.3.dist-info\\INSTALLER',
+  ('click-8.5.0.dist-info\\METADATA',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe-3.0.3.dist-info\\INSTALLER',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\click-8.5.0.dist-info\\METADATA',
    'DATA'),
-  ('pyreadline3-3.5.6.dist-info\\licenses\\LICENSE.md',
+  ('markupsafe-3.0.4.dist-info\\INSTALLER',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\pyreadline3-3.5.6.dist-info\\licenses\\LICENSE.md',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe-3.0.4.dist-info\\INSTALLER',
    'DATA'),
-  ('setuptools\\_vendor\\wheel-0.45.1.dist-info\\WHEEL',
+  ('werkzeug-3.1.9.dist-info\\WHEEL',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\setuptools\\_vendor\\wheel-0.45.1.dist-info\\WHEEL',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\werkzeug-3.1.9.dist-info\\WHEEL',
    'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
+  ('numpy-2.5.4.dist-info\\DELVEWHEEL',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\DELVEWHEEL',
    'DATA'),
-  ('werkzeug-3.1.8.dist-info\\WHEEL',
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\werkzeug-3.1.8.dist-info\\WHEEL',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\METADATA',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\METADATA',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('click-8.5.0.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\click-8.5.0.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
+   'DATA'),
+  ('werkzeug-3.1.9.dist-info\\INSTALLER',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\werkzeug-3.1.9.dist-info\\INSTALLER',
+   'DATA'),
+  ('click-8.5.0.dist-info\\WHEEL',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\click-8.5.0.dist-info\\WHEEL',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\REQUESTED',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\REQUESTED',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\RECORD',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\RECORD',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
    'DATA'),
   ('flask-3.1.3.dist-info\\WHEEL',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\flask-3.1.3.dist-info\\WHEEL',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\WHEEL',
    'DATA'),
-  ('markupsafe-3.0.3.dist-info\\RECORD',
+  ('markupsafe-3.0.4.dist-info\\METADATA',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\markupsafe-3.0.3.dist-info\\RECORD',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe-3.0.4.dist-info\\METADATA',
    'DATA'),
-  ('numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
+  ('numpy-2.5.4.dist-info\\INSTALLER',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\numpy-2.4.6.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\INSTALLER',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\INSTALLER',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\INSTALLER',
+   'DATA'),
+  ('werkzeug-3.1.9.dist-info\\RECORD',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\werkzeug-3.1.9.dist-info\\RECORD',
+   'DATA'),
+  ('werkzeug-3.1.9.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\werkzeug-3.1.9.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\WHEEL',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\WHEEL',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\WHEEL',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\entry_points.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\entry_points.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\RECORD',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
+   'DATA'),
+  ('markupsafe-3.0.4.dist-info\\top_level.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe-3.0.4.dist-info\\top_level.txt',
+   'DATA'),
+  ('markupsafe-3.0.4.dist-info\\WHEEL',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe-3.0.4.dist-info\\WHEEL',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\REQUESTED',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\REQUESTED',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\flask-3.1.3.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('markupsafe-3.0.4.dist-info\\RECORD',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe-3.0.4.dist-info\\RECORD',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\entry_points.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\entry_points.txt',
+   'DATA'),
+  ('werkzeug-3.1.9.dist-info\\METADATA',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\werkzeug-3.1.9.dist-info\\METADATA',
+   'DATA'),
+  ('markupsafe-3.0.4.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\markupsafe-3.0.4.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\METADATA',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\METADATA',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
+   'DATA'),
+  ('click-8.5.0.dist-info\\INSTALLER',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\click-8.5.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('numpy-2.5.4.dist-info\\RECORD',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\numpy-2.5.4.dist-info\\RECORD',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\METADATA',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
    'DATA'),
   ('cv2\\__init__.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\__init__.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\__init__.py',
    'DATA'),
   ('cv2\\version.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\version.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\version.py',
    'DATA'),
   ('cv2\\utils\\__init__.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\utils\\__init__.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\utils\\__init__.py',
    'DATA'),
   ('cv2\\typing\\__init__.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\typing\\__init__.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\typing\\__init__.py',
    'DATA'),
   ('cv2\\misc\\version.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\misc\\version.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\misc\\version.py',
    'DATA'),
   ('cv2\\misc\\__init__.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\misc\\__init__.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\misc\\__init__.py',
    'DATA'),
   ('cv2\\mat_wrapper\\__init__.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\mat_wrapper\\__init__.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\mat_wrapper\\__init__.py',
    'DATA'),
   ('cv2\\data\\__init__.py',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\cv2\\data\\__init__.py',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\cv2\\data\\__init__.py',
    'DATA'),
   ('base_library.zip',
-   'C:\\Users\\SM 461\\Desktop\\Try 2\\build\\web_wiring\\base_library.zip',
+   'C:\\Users\\SM '
+   '470\\Desktop\\wiriing_project\\wiring-utility\\build\\web_wiring\\base_library.zip',
    'DATA')],
  [],
  False,
  False,
- 1793013296,
+ 1793082337,
  [('run.exe',
    'C:\\Users\\SM '
-   '461\\AppData\\Roaming\\Python\\Python311\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
+   '470\\Desktop\\wiriing_project\\wiring-utility\\wire\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
    'EXECUTABLE')],
- 'C:\\Program Files\\Python311\\python311.dll')
+ 'C:\\Program '
+ 'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\python312.dll')

@@ -157,14 +157,22 @@ def get_thinclient_uid():
     mac = get_pc_mac_address()
     return mac.replace(":", "").upper()
 
+# for production
+# def generate_utc_request_id():
+#     """
+#     Generates UtcRequest_ID as specified in document:
+#     13-digit epoch in ms + 19 random digits (e.g. 179101286776517797148103240069120)
+#     """
+#     epoch_ms = str(int(time.time() * 1000))
+#     random_digits = "".join([str(random.randint(0, 9)) for _ in range(19)])
+#     return epoch_ms + random_digits
+
+# For testing purpose
 def generate_utc_request_id():
     """
-    Generates UtcRequest_ID as specified in document:
-    13-digit epoch in ms + 19 random digits (e.g. 179101286776517797148103240069120)
+    Fixed UtcRequest_ID for testing purposes.
     """
-    epoch_ms = str(int(time.time() * 1000))
-    random_digits = "".join([str(random.randint(0, 9)) for _ in range(19)])
-    return epoch_ms + random_digits
+    return "1234"
 
 def parse_sticker(scanned_code=None, default_apo=None):
     """

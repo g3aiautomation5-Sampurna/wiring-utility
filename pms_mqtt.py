@@ -35,17 +35,37 @@ MQTT_PASSWORD = _config.get("pms_broker_password", "")
 DEVICE_MAC = get_pc_mac_address()
 
 # Topic prefixes from external JSON
+# PUBLISH_TOPIC_PREFIX = _config.get(
+#     "pms_publish_topic_prefix", "SELEC/PMS/SUB/G7"
+# ).rstrip("/")
+
+# SUBSCRIBE_TOPIC_PREFIX = _config.get(
+#     "pms_subscribe_topic_prefix", "SELEC/PMS/PUB/G7"
+# ).rstrip("/")
+
+# # Build device-specific topics
+# PUBLISH_TOPIC = f"{PUBLISH_TOPIC_PREFIX}/{DEVICE_MAC}"
+# RESPONSE_TOPIC = f"{SUBSCRIBE_TOPIC_PREFIX}/{DEVICE_MAC}"
+
+
+
 PUBLISH_TOPIC_PREFIX = _config.get(
-    "pms_publish_topic_prefix", "SELEC/PMS/SUB/G7"
+    "pms_publish_topic_prefix", "SELEC/PMS/PUB/G7"
 ).rstrip("/")
 
 SUBSCRIBE_TOPIC_PREFIX = _config.get(
-    "pms_subscribe_topic_prefix", "SELEC/PMS/PUB/G7"
+    "pms_subscribe_topic_prefix", "SELEC/PMS/SUB/G7"
 ).rstrip("/")
 
 # Build device-specific topics
 PUBLISH_TOPIC = f"{PUBLISH_TOPIC_PREFIX}/{DEVICE_MAC}"
 RESPONSE_TOPIC = f"{SUBSCRIBE_TOPIC_PREFIX}/{DEVICE_MAC}"
+
+
+# for payloads 
+PAYLOAD_PUBLISH_TOPIC = f"{SUBSCRIBE_TOPIC_PREFIX}/{DEVICE_MAC}"
+PAYLOAD_RESPONSE_TOPIC = f"{PUBLISH_TOPIC_PREFIX}/{DEVICE_MAC}"
+
 
 print(f"[PMS MQTT] Broker: {BROKER_IP}:{BROKER_PORT}")
 print(f"[PMS MQTT] Device MAC: {DEVICE_MAC}")
@@ -144,7 +164,13 @@ class PMSMQTTClient:
             f"[PMS MQTT] Connected to {BROKER_IP}:{BROKER_PORT}"
         )
 
-        result, _ = client.subscribe(RESPONSE_TOPIC, qos=1)
+        # result, _ = client.subscribe(RESPONSE_TOPIC, qos=1) check 2
+        result, _ = client.subscribe(
+            [
+                (RESPONSE_TOPIC, 1),
+                (PAYLOAD_RESPONSE_TOPIC, 1),
+            ]
+        )
 
         if result != mqtt.MQTT_ERR_SUCCESS:
             self.last_error = (
@@ -214,11 +240,60 @@ class PMSMQTTClient:
     # CONNECT TO PMS MQTT BROKER
     # --------------------------------------------------
 
+    # def connect(self):
+    #     if (
+    #         self.connected.is_set()
+    #         and self.subscribed.is_set()
+    #     ):
+    #         return
+
+    #     self.last_error = None
+
+    #     try:
+    #         cfg = load_or_create_config()
+    #         active_broker_ip = cfg.get("pms_broker_ip", BROKER_IP)
+    #         active_broker_port = int(cfg.get("pms_broker_port", BROKER_PORT))
+    #         conn_timeout, _, _ = get_pms_timeouts()
+
+    #         if not self.loop_started:
+    #             self.client.connect(
+    #                 active_broker_ip,
+    #                 active_broker_port,
+    #                 keepalive=60,
+    #             )
+
+    #             self.client.loop_start()
+    #             self.loop_started = True
+
+    #         if not self.connected.wait(conn_timeout):
+    #             error = (
+    #                 self.last_error
+    #                 or f"Connection timed out to "
+    #                 f"{active_broker_ip}:{active_broker_port} after {conn_timeout:g}s"
+    #             )
+    #             self.last_error = error
+    #             raise TimeoutError(f"[PMS MQTT] {error}")
+
+    #         if not self.subscribed.wait(conn_timeout):
+    #             error = (
+    #                 self.last_error
+    #                 or f"PMS response topic subscription was not confirmed within {conn_timeout:g}s."
+    #             )
+    #             self.last_error = error
+    #             raise TimeoutError(f"[PMS MQTT] {error}")
+
+    #     except Exception as exc:
+    #         self.last_error = str(exc)
+    #         print(f"[PMS MQTT] Connection failed: {self.last_error}")
+    #         raise
+
+    
     def connect(self):
         if (
             self.connected.is_set()
             and self.subscribed.is_set()
         ):
+            print("[CHECKPOINT 1/4] PMS MQTT: Already connected and subscribed.")
             return
 
         self.last_error = None
@@ -226,10 +301,20 @@ class PMSMQTTClient:
         try:
             cfg = load_or_create_config()
             active_broker_ip = cfg.get("pms_broker_ip", BROKER_IP)
-            active_broker_port = int(cfg.get("pms_broker_port", BROKER_PORT))
+            active_broker_port = int(
+                cfg.get("pms_broker_port", BROKER_PORT)
+            )
             conn_timeout, _, _ = get_pms_timeouts()
 
+            print("\n" + "=" * 65)
+            print("[CHECKPOINT 1/4] PMS MQTT CONNECTION STARTED")
+            print(f"[PMS MQTT] Broker: {active_broker_ip}:{active_broker_port}")
+            print("[PMS MQTT] Starting connection checks...")
+            print("=" * 65)
+
             if not self.loop_started:
+                print("[PMS MQTT] Initiating broker connection...")
+
                 self.client.connect(
                     active_broker_ip,
                     active_broker_port,
@@ -238,28 +323,48 @@ class PMSMQTTClient:
 
                 self.client.loop_start()
                 self.loop_started = True
+                print("[PMS MQTT] MQTT network loop started.")
+
+            print("[PMS MQTT] Waiting for broker connection confirmation...")
 
             if not self.connected.wait(conn_timeout):
                 error = (
                     self.last_error
                     or f"Connection timed out to "
-                    f"{active_broker_ip}:{active_broker_port} after {conn_timeout:g}s"
+                    f"{active_broker_ip}:{active_broker_port} "
+                    f"after {conn_timeout:g}s"
                 )
                 self.last_error = error
-                raise TimeoutError(f"[PMS MQTT] {error}")
+                raise TimeoutError(error)
+
+            print("[CHECKPOINT 2/4] BROKER CONNECTION SUCCESSFUL")
+
+            print(
+                f"[PMS MQTT] Waiting for response-topic subscription: "
+                # f"{RESPONSE_TOPIC}"  check 3
+                f"{RESPONSE_TOPIC} and {PAYLOAD_RESPONSE_TOPIC}" 
+            )
 
             if not self.subscribed.wait(conn_timeout):
                 error = (
                     self.last_error
-                    or f"PMS response topic subscription was not confirmed within {conn_timeout:g}s."
+                    or "PMS response-topic subscription was not confirmed "
+                    f"within {conn_timeout:g}s."
                 )
                 self.last_error = error
-                raise TimeoutError(f"[PMS MQTT] {error}")
+                raise TimeoutError(error)
+
+            print("[CHECKPOINT 3/4] RESPONSE TOPIC SUBSCRIBED")
+            print("[PMS MQTT] Ready to publish payloads and receive responses.")
+            print("=" * 65 + "\n")
 
         except Exception as exc:
             self.last_error = str(exc)
-            print(f"[PMS MQTT] Connection failed: {self.last_error}")
+            print("[CHECKPOINT FAILED] PMS MQTT CONNECTION FAILED")
+            print(f"[PMS MQTT] Reason: {self.last_error}")
+            print("=" * 65)
             raise
+
 
     # --------------------------------------------------
     # MESSAGE QUEUE
@@ -286,7 +391,7 @@ class PMSMQTTClient:
             )
 
         info = self.client.publish(
-            PUBLISH_TOPIC,
+            PAYLOAD_PUBLISH_TOPIC,    # check 1
             json.dumps(payload),
             qos=1,
         )
@@ -305,7 +410,7 @@ class PMSMQTTClient:
 
         print(
             f"[PMS MQTT] Published {payload.get('CmdType')} "
-            f"to {PUBLISH_TOPIC}"
+            f"to {PAYLOAD_PUBLISH_TOPIC}"
         )
         print(
             f"[PMS MQTT] Request ID: "
@@ -530,42 +635,193 @@ class PMSMQTTClient:
     # PUBLISH FINAL INSPECTION REPORT
     # --------------------------------------------------
 
+    # def publish_report(self, payload):
+    #     with self.lock:
+    #         self.connect()
+    #         self._clear_pending_messages()
+
+    #         self.publish_json(payload)
+
+    #         print(
+    #             "[PMS MQTT] ReportStore published; "
+    #             "waiting for response..."
+    #         )
+
+    #         _, _, report_timeout = get_pms_timeouts()
+    #         deadline = time.monotonic() + report_timeout
+
+    #         while time.monotonic() < deadline:
+    #             try:
+    #                 msg = self.messages.get(
+    #                     timeout=max(
+    #                         0.1,
+    #                         deadline - time.monotonic(),
+    #                     )
+    #                 )
+    #             except queue.Empty:
+    #                 break
+
+    #             return {
+    #                 "received": True,
+    #                 "topic": msg["topic"],
+    #                 "payload": msg["payload"],
+    #             }
+
+    #         return {
+    #             "received": False,
+    #             "message": f"ReportStore response timed out after {report_timeout:g} seconds.",
+    #         }
+
+    
     def publish_report(self, payload):
+        """
+        Publish ReportStore and wait for a matching ResponseFromServer.
+
+        Retries up to 3 total publish attempts if no matching response
+        is received. A matching rejection is returned immediately.
+        """
+
+        MAX_ATTEMPTS = 3
+
         with self.lock:
             self.connect()
             self._clear_pending_messages()
 
-            self.publish_json(payload)
+            request_id = str(
+                payload.get("UtcRequest_ID", "")
+            ).strip()
 
-            print(
-                "[PMS MQTT] ReportStore published; "
-                "waiting for response..."
-            )
+            if not request_id:
+                raise ValueError(
+                    "ReportStore payload has no UtcRequest_ID."
+                )
 
             _, _, report_timeout = get_pms_timeouts()
-            deadline = time.monotonic() + report_timeout
 
-            while time.monotonic() < deadline:
-                try:
-                    msg = self.messages.get(
-                        timeout=max(
-                            0.1,
-                            deadline - time.monotonic(),
+            for attempt in range(1, MAX_ATTEMPTS + 1):
+                print(
+                    f"[PMS MQTT] ReportStore attempt "
+                    f"{attempt}/{MAX_ATTEMPTS}; "
+                    f"Request ID: {request_id}"
+                )
+
+                # Republish the same payload with the same request ID.
+                self.publish_json(payload)
+
+                deadline = time.monotonic() + report_timeout
+
+                while time.monotonic() < deadline:
+                    remaining = deadline - time.monotonic()
+
+                    try:
+                        msg = self.messages.get(
+                            timeout=max(0.1, remaining)
                         )
-                    )
-                except queue.Empty:
-                    break
+                    except queue.Empty:
+                        break
 
-                return {
-                    "received": True,
-                    "topic": msg["topic"],
-                    "payload": msg["payload"],
-                }
+                    try:
+                        response = json.loads(msg["payload"])
+                    except (json.JSONDecodeError, TypeError):
+                        print(
+                            "[PMS MQTT] Ignoring non-JSON "
+                            "ReportStore response."
+                        )
+                        continue
+
+                    response_type = str(
+                        response.get("CmdType", "")
+                    ).strip()
+
+                    if response_type.upper() != "RESPONSEFROMSERVER":
+                        print(
+                            "[PMS MQTT] Ignoring unrelated response "
+                            f"CmdType: {response_type}"
+                        )
+                        continue
+
+                    response_id = str(
+                        response.get("UtcRequest_ID", "")
+                    ).strip()
+
+                    if response_id != request_id:
+                        print(
+                            "[PMS MQTT] Ignoring response with "
+                            f"mismatched Request ID: {response_id}"
+                        )
+                        continue
+
+                    status = str(
+                        response.get("RequestStatus", "")
+                    ).strip()
+
+                    if status.upper() in {
+                        "CONFIG SUCCESSFUL",
+                        "DATA SAVED SUCCESSFULLY",
+                    }:
+                        print(
+                            "[PMS MQTT] ReportStore accepted by PMS."
+                        )
+                        return {
+                            "received": True,
+                            "accepted": True,
+                            "request_id": request_id,
+                            "request_status": status,
+                            "topic": msg["topic"],
+                            "payload": response,
+                            "attempts": attempt,
+                        }
+
+                    # A matching response arrived, but it did not
+                    # confirm success. Treat it as a rejection.
+                    reason = next(
+                        (
+                            str(response[key]).strip()
+                            for key in (
+                                "Reason",
+                                "Message",
+                                "ErrorMessage",
+                                "Error",
+                                "Description",
+                                "ResponseMessage",
+                            )
+                            if response.get(key) not in (None, "")
+                        ),
+                        status or "PMS did not confirm ReportStore success.",
+                    )
+
+                    print(
+                        "[PMS MQTT] ReportStore was not accepted. "
+                        f"Status: {status}; Reason: {reason}"
+                    )
+
+                    return {
+                        "received": True,
+                        "accepted": False,
+                        "request_id": request_id,
+                        "request_status": status,
+                        "reason": reason,
+                        "topic": msg["topic"],
+                        "payload": response,
+                        "attempts": attempt,
+                    }
+
+                print(
+                    f"[PMS MQTT] No matching ReportStore response "
+                    f"during attempt {attempt}/{MAX_ATTEMPTS}."
+                )
 
             return {
                 "received": False,
-                "message": f"ReportStore response timed out after {report_timeout:g} seconds.",
+                "accepted": False,
+                "request_id": request_id,
+                "message": (
+                    "No matching ReportStore response received "
+                    f"after {MAX_ATTEMPTS} attempts."
+                ),
+                "attempts": MAX_ATTEMPTS,
             }
+
 
 
 # One shared client for the Flask process
