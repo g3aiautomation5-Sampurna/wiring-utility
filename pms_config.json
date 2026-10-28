@@ -10,6 +10,7 @@
     "pms_broker_password": "YOUR_PASSWORD",
     "pms_publish_topic_prefix": "SELEC/PMS/SUB/G7",
     "pms_subscribe_topic_prefix": "SELEC/PMS/PUB/G7",
+    "status_check": 1, 
     "plc_jig_production_line_no": "1",
     "jig_uid": "CGJIGxxxxxxxxxx00111",
     "testing_stage": "X_POWER_SUPPLY_4Point3",

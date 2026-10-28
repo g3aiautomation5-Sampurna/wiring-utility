@@ -303,6 +303,7 @@ def build_status_validation(device_serial_no=None, apo_number_id=None, mac_id=No
     If device_serial_no is not provided, automatically uses the Thinclient UID / MAC.
     """
     cfg = load_or_create_config()
+    status_check = int(cfg.get("status_check", 1))
     if not mac_id:
         mac_id = get_pc_mac_address()
 
@@ -324,6 +325,7 @@ def build_status_validation(device_serial_no=None, apo_number_id=None, mac_id=No
         "CmdType": "StatusValidation",
         "UtcRequest_ID": req_id,
         "Device_MAC_ID": mac_id,
+        "status_check": status_check,
         "TableName": table_status,
         "ColumnsName": [
             {

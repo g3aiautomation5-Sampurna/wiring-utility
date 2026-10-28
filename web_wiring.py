@@ -1267,6 +1267,23 @@ HTML_PAGE = """<!DOCTYPE html>
             background: #22c55e;
             box-shadow: 0 0 7px rgba(34, 197, 94, 0.65);
         }
+        .start-version-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .version-display {
+            font-size: 17px;
+            font-weight: 700;
+            color: #ffffff;
+            background: #1f2937;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #64748b;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -1320,9 +1337,15 @@ HTML_PAGE = """<!DOCTYPE html>
             <button class="btn-header" id="btnLiveReset" onclick="resetToLiveCameras()" title="Switch back to live video streams">
                 🔄 Live
             </button>
-            <button class="btn-start" id="btnStartInspection" onclick="triggerStartInspection()" disabled title="Scan QR Code and wait for PMS server validation (CONFIG SUCCESSFUL) to activate START">
-                ▶ START
-            </button>
+            <div class="start-version-group">
+                <button class="btn-start" id="btnStartInspection"
+                        onclick="triggerStartInspection()" disabled
+                        title="Scan QR Code and wait for PMS server validation (CONFIG SUCCESSFUL) to activate START">
+                    ▶ START
+                </button>
+
+                <span class="version-display" id="startVersionBadge">Version: v1</span>
+            </div>
         </div>
     </header>
 
@@ -2505,8 +2528,17 @@ HTML_PAGE = """<!DOCTYPE html>
                     return;
                 }
 
-                document.getElementById("appVersionBadge").textContent =
-                    "Version: " + result.version;
+                // Update version beside Dual Camera
+                const headerVersion = document.getElementById("appVersionBadge");
+                if (headerVersion) {
+                    headerVersion.textContent = "Version: " + result.version;
+                }
+
+                // Update version beside START
+                const startVersion = document.getElementById("startVersionBadge");
+                if (startVersion) {
+                    startVersion.textContent = "Version: " + result.version;
+                }   
 
                 message.style.color = "#16a34a";
                 message.textContent = result.message || "Version updated successfully.";
@@ -2718,8 +2750,18 @@ def pms_validate_endpoint():
             "server_responses": server_responses
         }
 
-        print(f"[PMS VALIDATION GATE] All 3 validations confirmed CONFIG SUCCESSFUL for {serial_no}. START button enabled.\n")
+        status_was_checked = server_responses.get("StatusValidation") is not None
 
+        if status_was_checked:
+            print(
+                f"[PMS VALIDATION GATE] Device, Serial, and Status validations "
+                f"confirmed CONFIG SUCCESSFUL for {serial_no}. START button enabled.\n"
+            )
+        else:
+            print(
+                f"[PMS VALIDATION GATE] Device and Serial validations successful. "
+                f"Status Validation skipped. START button enabled for {serial_no}.\n"
+            )
         return jsonify({
             "status": "success",
             "validated": True,
@@ -2728,7 +2770,11 @@ def pms_validate_endpoint():
             "raw_qr": device_id,
             "payloads": validated_payloads,
             "server_responses": server_responses,
-            "message": f"Server responded CONFIG SUCCESSFUL for Whitelisting, SerialNo, and StatusValidation. START button activated."
+            "message": (
+                "Server responded CONFIG SUCCESSFUL for Whitelisting, SerialNo, and StatusValidation. START button activated."
+                if server_responses.get("StatusValidation") is not None
+                else "Whitelisting and SerialNo validations successful. StatusValidation skipped. START button activated."
+            )
         })
 
     except Exception as exc:

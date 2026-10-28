@@ -591,17 +591,39 @@ class PMSMQTTClient:
             "Proceeding to StatusValidation."
         )
 
-        # STEP 3: StatusValidation
-        req_id_3, payload_3 = build_status_validation(
-            device_serial_no=device_serial_no,
-            apo_number_id=apo_number_id,
-            mac_id=mac_id,
-        )
+        # STEP 3: StatusValidation(in production umcomment it)
+        # req_id_3, payload_3 = build_status_validation(
+        #     device_serial_no=device_serial_no,
+        #     apo_number_id=apo_number_id,
+        #     mac_id=mac_id,
+        # )
 
-        resp_3 = self.validate(
-            "StatusValidation",
-            payload_3,
-        )
+        # in production comment it out
+        cfg = load_or_create_config()
+        status_check = int(cfg.get("status_check", 1))
+        print(f"[PMS MQTT] status_check = {status_check}")
+
+        if status_check == 0:
+            req_id_3, payload_3 = build_status_validation(
+                device_serial_no=device_serial_no,
+                apo_number_id=apo_number_id,
+                mac_id=mac_id,
+            )
+
+        # Uncomment in production 
+        # resp_3 = self.validate(
+        #     "StatusValidation",
+        #     payload_3,
+        # )
+
+        # Comment out in production
+        if status_check == 0:
+            resp_3 = self.validate(
+                "StatusValidation",
+                payload_3,
+            )
+        else:
+            resp_3 = None
 
         payload_4 = build_empty_report_store(
             device_serial_no=device_serial_no,
@@ -611,23 +633,34 @@ class PMSMQTTClient:
 
         print("\n")
         print("#" * 60)
-        print("[PMS MQTT] ALL THREE VALIDATIONS SUCCESSFUL")
+        # print("[PMS MQTT] ALL THREE VALIDATIONS SUCCESSFUL")
+        # print("[PMS MQTT] Inspection is authorized to start.")
+        if status_check == 0:
+            print("[PMS MQTT] ALL THREE VALIDATIONS SUCCESSFUL")
+        else:
+            print("[PMS MQTT] DEVICE AND SERIAL VALIDATIONS SUCCESSFUL")
+            print("[PMS MQTT] Status Validation skipped (status_check=1).")
+
         print("[PMS MQTT] Inspection is authorized to start.")
         print("#" * 60)
 
         return {
             "success": True,
-            "message": "All three PMS validations successful.",
+            "message": (
+                "All three PMS validations successful."
+                if status_check == 0
+                else "Device and Serial validations successful. Status Validation skipped."
+            ),
             "payloads": {
                 "DeviceAutoWhitelisting": payload_1,
                 "SerialNoValidation": payload_2,
-                "StatusValidation": payload_3,
+                "StatusValidation": payload_3 if status_check == 0 else None,
                 "ReportStore": payload_4,
             },
             "server_responses": {
                 "DeviceAutoWhitelisting": resp_1,
                 "SerialNoValidation": resp_2,
-                "StatusValidation": resp_3,
+                "StatusValidation": resp_3 if status_check == 0 else None,
             }
         }
 
