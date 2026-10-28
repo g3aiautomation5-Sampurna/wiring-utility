@@ -41,7 +41,8 @@ from pms_json_manager import (
     build_empty_report_store,
     build_empty_payloads,
     save_payload_to_file,
-    load_or_create_config
+    load_or_create_config,
+    update_config_value
 )
 
 app = Flask(__name__)
@@ -1516,6 +1517,58 @@ HTML_PAGE = """<!DOCTYPE html>
         const btnStartInspection = document.getElementById('btnStartInspection');
         const deviceSerialInput = document.getElementById('deviceSerialInput');
 
+        
+        function clearPreviousProductOutput() {
+            // Clear the previous inspection images.
+            resTopWiresAnnotated = null;
+            resTopOriginsAnnotated = null;
+            resOrig3Annotated = null;
+
+            // Clear the single-result image, if displayed.
+            if (singleResultImg) {
+                singleResultImg.removeAttribute("src");
+                singleResultImg.style.display = "none";
+            }
+
+            // Clear inspection result indicators.
+            [
+                "pillOrig3Grommet",
+                "pillObl",
+                "pillOum",
+                "pillObr",
+                "pillC1",
+                "pillC2",
+                "pillC3"
+            ].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = "--";
+                    element.className = element.className
+                        .replace(/\b(pass|fail|success|error)\b/gi, "")
+                        .trim();
+                }
+            });
+
+            // Hide the previous verdict banner.
+            const verdictBanner = document.getElementById("verdictBanner");
+            if (verdictBanner) {
+                verdictBanner.style.display = "none";
+            }
+
+            // Clear the previous product's displayed identity and verdict.
+            [
+                "verdictText",
+                "verdictDevice",
+                "verdictDesc"
+            ].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = "";
+                }
+            });
+        }
+
+
         function parseQrInput(text) {
             if (!text) return { id: '', sr: '' };
             const idMatch = text.match(/(?:^|[;,|\s])\s*(?:APoNumberId|APO(?:_?ID)?|Id)\s*[:=]\s*([^;,|]+)/i);
@@ -1673,6 +1726,8 @@ HTML_PAGE = """<!DOCTYPE html>
             deviceSerialInput.addEventListener('input', () => {
                 const val = deviceSerialInput.value.trim();
                 if (val !== currentValidatedCode) {
+                    clearPreviousProductOutput();
+
                     btnStartInspection.disabled = true;
                     btnStartInspection.classList.remove('ready-pulse');
                     pmsPayloadsCache = null; // Keep JSON fields empty until server confirms
@@ -2106,6 +2161,11 @@ HTML_PAGE = """<!DOCTYPE html>
                 `Device [${deviceId}]. PMS status: ${pmsStatus}.`;
 
             setViewMode('res_top_wires');
+            // Make sure the previous image-clearing logic does not keep
+            // the result image hidden.
+            if (singleResultImg && singleResultImg.getAttribute('src')) {
+                singleResultImg.style.display = "block";
+            }
         }
 
 
@@ -2467,18 +2527,26 @@ HTML_PAGE = """<!DOCTYPE html>
 
         // ================= ADMIN VERSION SETTINGS =================
 
+        
         function openVersionAdminModal() {
             const modal = document.getElementById("versionAdminModal");
             const message = document.getElementById("versionAdminMessage");
 
+            // Reset the form whenever the modal opens.
+            document.getElementById("adminAction").value = "version";
             document.getElementById("newAppVersion").value = "";
+            document.getElementById("newJigUid").value = "";
             document.getElementById("adminVersionPassword").value = "";
 
             message.style.display = "none";
             message.textContent = "";
 
+            // Default to the application version action.
+            handleAdminActionChange();
+
             modal.style.display = "flex";
         }
+
 
         function closeVersionAdminModal(event) {
             if (event && event.target !== event.currentTarget) {
@@ -2488,69 +2556,140 @@ HTML_PAGE = """<!DOCTYPE html>
             document.getElementById("versionAdminModal").style.display = "none";
         }
 
-        async function submitVersionUpdate() {
-            const version = document.getElementById("newAppVersion").value.trim();
+        
+        async function submitAdminSettings() {
+            const action = document.getElementById("adminAction").value;
             const password = document.getElementById("adminVersionPassword").value;
             const message = document.getElementById("versionAdminMessage");
 
-            message.style.display = "block";
-            message.style.color = "#d97706";
+            let endpoint = "";
+            let payload = {};
 
-            if (!version) {
-                message.textContent = "Please enter a version number.";
-                return;
-            }
-
-            if (!password) {
+            if (!password.trim()) {
+                message.style.display = "block";
+                message.style.color = "#dc2626";
                 message.textContent = "Please enter the admin password.";
                 return;
             }
 
-            message.textContent = "Updating version...";
+            if (action === "version") {
+                const version = document.getElementById("newAppVersion").value.trim();
+
+                if (!version) {
+                    message.style.display = "block";
+                    message.style.color = "#dc2626";
+                    message.textContent = "Please enter an application version.";
+                    return;
+                }
+
+                endpoint = "/api/admin/version";
+                payload = {
+                    version: version,
+                    password: password
+                };
+
+                message.textContent = "Updating application version...";
+            } else if (action === "jig_uid") {
+                const jigUid = document.getElementById("newJigUid").value.trim();
+
+                if (!jigUid) {
+                    message.style.display = "block";
+                    message.style.color = "#dc2626";
+                    message.textContent = "Please enter a Jig UID.";
+                    return;
+                }
+
+                endpoint = "/api/admin/jig-uid";
+                payload = {
+                    jig_uid: jigUid,
+                    password: password
+                };
+
+                message.textContent = "Updating Jig UID...";
+            } else {
+                return;
+            }
+
+            message.style.display = "block";
+            message.style.color = "#d97706";
 
             try {
-                const response = await fetch("/api/admin/version", {
+                const response = await fetch(endpoint, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                        version: version,
-                        password: password
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
 
                 if (!response.ok || !result.success) {
                     message.style.color = "#dc2626";
-                    message.textContent = result.message || "Failed to update version.";
+                    message.textContent =
+                        result.message || "Failed to save settings.";
                     return;
                 }
 
-                // Update version beside Dual Camera
-                const headerVersion = document.getElementById("appVersionBadge");
-                if (headerVersion) {
-                    headerVersion.textContent = "Version: " + result.version;
+                if (action === "version") {
+                    // Update the application version beside the title.
+                    const headerVersion = document.getElementById("appVersionBadge");
+                    if (headerVersion) {
+                        headerVersion.textContent = "Version: " + result.version;
+                    }
+
+                    // Update the application version beside START.
+                    const startVersion = document.getElementById("startVersionBadge");
+                    if (startVersion) {
+                        startVersion.textContent = "Version: " + result.version;
+                    }
+
+                    message.textContent =
+                        result.message || "Application version updated successfully.";
+                } else {
+                    message.textContent =
+                        result.message || "Jig UID updated successfully.";
+
+                    // Invalidate cached payloads so the next request can fetch
+                    // payloads using the updated configuration.
+                    pmsPayloadsCache = null;
                 }
 
-                // Update version beside START
-                const startVersion = document.getElementById("startVersionBadge");
-                if (startVersion) {
-                    startVersion.textContent = "Version: " + result.version;
-                }   
-
                 message.style.color = "#16a34a";
-                message.textContent = result.message || "Version updated successfully.";
-
                 document.getElementById("adminVersionPassword").value = "";
 
             } catch (error) {
-                console.error("Version update error:", error);
+                console.error("Admin settings error:", error);
                 message.style.color = "#dc2626";
-                message.textContent = "Could not connect to the application server.";
+                message.textContent =
+                    "Could not connect to the application server.";
             }
         }
+
+
+        
+        function handleAdminActionChange() {
+            const action = document.getElementById("adminAction").value;
+
+            const versionGroup = document.getElementById("versionFieldGroup");
+            const jigUidGroup = document.getElementById("jigUidFieldGroup");
+            const message = document.getElementById("versionAdminMessage");
+
+            // Show only the field for the selected action.
+            versionGroup.style.display =
+                action === "version" ? "block" : "none";
+
+            jigUidGroup.style.display =
+                action === "jig_uid" ? "block" : "none";
+
+            // Clear previous messages when changing actions.
+            message.style.display = "none";
+            message.textContent = "";
+
+            // Clear the password so it is entered for the selected action.
+            document.getElementById("adminVersionPassword").value = "";
+        }
+
 
         
         async function loadCurrentVersion() {
@@ -2603,58 +2742,121 @@ HTML_PAGE = """<!DOCTYPE html>
         </div>
     </div>
     
-    <!-- Admin Version Settings Modal -->
-    <div id="versionAdminModal" class="modal-backdrop"
-        style="display: none;" onclick="closeVersionAdminModal(event)">
+
+    <!-- Admin Settings Modal -->
+    <div id="versionAdminModal"
+        class="modal-backdrop"
+        style="display: none;"
+        onclick="closeVersionAdminModal(event)">
+
         <div class="modal-box" onclick="event.stopPropagation()">
 
             <div class="modal-header">
-                <h3>⚙️ Admin Version Settings</h3>
+                <h3>⚙️ Admin Settings</h3>
                 <button class="modal-close"
-                        onclick="closeVersionAdminModal()">&times;</button>
+                        type="button"
+                        onclick="closeVersionAdminModal()">
+                    &times;
+                </button>
             </div>
-
+    
             <div style="padding: 20px;">
-                <label for="newAppVersion"
-                    style="display: block; margin-bottom: 8px;">
-                    New Application Version
-                </label>
-                <input
-                    type="text"
-                    id="newAppVersion"
-                    placeholder="Example: v2.0"
-                    maxlength="30"
-                    autocomplete="off"
-                    style="width: 100%; box-sizing: border-box;
-                        padding: 10px; margin-bottom: 16px;"
-                >
 
+                <!-- Action Selector -->
+                <label for="adminAction"
+                    style="display: block; margin-bottom: 8px;">
+                    Select Action
+                </label>
+
+                <select id="adminAction"
+                        onchange="handleAdminActionChange()"
+                        style="width: 100%; box-sizing: border-box;
+                            padding: 10px; margin-bottom: 18px;
+                            background: #1a2333; color: #f1f5f9;
+                            border: 1px solid #334155; border-radius: 6px;">
+
+                    <option value="version">Update Application Version</option>
+                    <option value="jig_uid">Update Jig UID</option>
+
+                </select>
+
+                <!-- Application Version Field -->
+                <div id="versionFieldGroup">
+
+                    <label for="newAppVersion"
+                        style="display: block; margin-bottom: 8px;">
+                        New Application Version
+                    </label>
+
+                    <input type="text"
+                        id="newAppVersion"
+                        placeholder="Example: v2.0"
+                        maxlength="30"
+                        autocomplete="off"
+                        style="width: 100%; box-sizing: border-box;
+                                padding: 10px; margin-bottom: 16px;">
+
+                </div>
+
+                <!-- Jig UID Field -->
+                <div id="jigUidFieldGroup" style="display: none;">
+
+                    <label for="newJigUid"
+                        style="display: block; margin-bottom: 8px;">
+                        New Jig UID
+                    </label>
+
+                    <input type="text"
+                        id="newJigUid"
+                        placeholder="Enter the new Jig UID"
+                        maxlength="100"
+                        autocomplete="off"
+                        style="width: 100%; box-sizing: border-box;
+                                padding: 10px; margin-bottom: 16px;">
+
+                </div>
+
+                <!-- Admin Password -->
                 <label for="adminVersionPassword"
                     style="display: block; margin-bottom: 8px;">
                     Admin Password
                 </label>
-                <input
-                    type="password"
+
+                <input type="password"
                     id="adminVersionPassword"
                     placeholder="Enter admin password"
                     autocomplete="current-password"
                     style="width: 100%; box-sizing: border-box;
-                        padding: 10px;"
-                >
+                            padding: 10px;">
 
+                <!-- Success / Error Message -->
                 <p id="versionAdminMessage"
-                style="display: none; margin-top: 12px;"></p>
+                role="status"
+                aria-live="polite"
+                style="display: none; margin-top: 12px;">
+                </p>
+
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn-modal-close"
-                        onclick="closeVersionAdminModal()">Cancel</button>
-                <button type="button" class="btn-start"
-                        onclick="submitVersionUpdate()">Update Version</button>
+
+                <button type="button"
+                        class="btn-modal-close"
+                        onclick="closeVersionAdminModal()">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn-start"
+                        onclick="submitAdminSettings()">
+                    Save Settings
+                </button>
+
             </div>
 
         </div>
     </div>
+
 
 
     <!-- Slide In/Out Config Toast Container -->
@@ -2699,7 +2901,8 @@ validated_device_cache = {
     "apo_id": None,
     "timestamp": 0.0,
     "raw_input": None,
-    "payloads": None
+    "payloads": None,
+    "takt_start_time": None
 }
 
 @app.route("/api/pms/validate", methods=["POST"])
@@ -2728,6 +2931,8 @@ def pms_validate_endpoint():
 
     apo_id, serial_no = parse_sticker(device_id)
 
+    qr_scan_start_time = time.time()
+
     try:
         print("\n" + "=" * 60)
         print(f"[PMS VALIDATION GATE] Validating scanned device: Serial={serial_no}, APO={apo_id}...")
@@ -2747,7 +2952,8 @@ def pms_validate_endpoint():
             "timestamp": time.time(),
             "raw_input": device_id,
             "payloads": validated_payloads,
-            "server_responses": server_responses
+            "server_responses": server_responses,
+            "takt_start_time": qr_scan_start_time
         }
 
         status_was_checked = server_responses.get("StatusValidation") is not None
@@ -2825,6 +3031,8 @@ def inspect_endpoint():
             "message": "Device not validated. Payloads must be sent and server must respond CONFIG SUCCESSFUL with matching UtcRequest_ID before START is allowed.",
             "inspection_started": False
         }), 403
+    # Preserve the QR scan start time before clearing validation cache.
+    takt_start_time = validated_device_cache.get("takt_start_time")
 
     # Reset cache after starting inspection so each board requires a fresh scan and validation
     validated_device_cache = {
@@ -2832,7 +3040,8 @@ def inspect_endpoint():
         "apo_id": None,
         "timestamp": 0.0,
         "raw_input": None,
-        "payloads": None
+        "payloads": None,
+        "takt_start_time": None
     }
 
     top_img_data = data.get("top_image")
@@ -2965,7 +3174,21 @@ def inspect_endpoint():
     log_to_excel(excel_record)
 
     # 5. Generate and Log Selec PMS Report JSON Output (PASS or FAIL)
-    takt_time = time.time() - t_start
+    # takt_time = time.time() - t_start
+    # verdict_label = "PASS" if combined_pass else "FAIL"
+    # Calculate TaktTime from QR scan until this point.
+
+    # We'll finalize it after PMS accepts the ReportStore request.
+    # Calculate elapsed time from QR scan.
+    # takt_start_time was preserved before validated_device_cache was reset.
+    # TaktTime: QR scan to AI inference final result.
+    if takt_start_time is not None:
+        takt_time = time.time() - takt_start_time
+    else:
+        takt_time = time.time() - t_start
+
+    takt_time = round(takt_time, 3)
+
     verdict_label = "PASS" if combined_pass else "FAIL"
     try:
         req_id, pms_report_payload = build_report_store(
@@ -2973,7 +3196,20 @@ def inspect_endpoint():
             apo_number_id=apo_id,
             takt_time=takt_time,
             wire_origin_pass=origins_all_pass,
-            vi_test_pass=combined_pass
+            vi_test_pass=combined_pass,
+
+            # Individual inspection results
+            pv_pass=obl_pass,
+            coil_pass=oum_pass,
+            ac_cam1_pass=raw_obr_pass,
+            ac_cam2_pass=orig3_grommet_pass,
+
+            pv_case_pass=c1_pass,
+            coil_case_pass=c2_pass,
+            ac_case_pass=c3_pass,
+
+            # Inspection timestamp in epoch milliseconds
+            inspection_epoch_ms=int(time.time() * 1000)
         )
 
         # 1. Save in Result/PMS_Payloads/ with explicit PASS/FAIL prefix
@@ -3027,11 +3263,27 @@ def inspect_endpoint():
 
             response_payload["pms_mqtt_response"] = pms_response
 
+            # if (
+            #     pms_response.get("received") is True
+            #     and pms_response.get("accepted") is True
+            # ):
+            #     # PMS accepted ReportStore: use the AI inspection verdict.
+            #     response_payload["verdict"] = verdict_label
+            #     response_payload["pms_report_status"] = "ACCEPTED"
+
             if (
                 pms_response.get("received") is True
                 and pms_response.get("accepted") is True
             ):
-                # PMS accepted ReportStore: use the AI inspection verdict.
+                # PMS accepted ReportStore.
+                # Calculate total elapsed time from QR scan to PMS acceptance.
+                if takt_start_time is not None:
+                    final_takt_time = time.time() - takt_start_time
+                else:
+                    final_takt_time = time.time() - t_start
+
+                response_payload["takt_time_seconds"] = round(final_takt_time, 3)
+
                 response_payload["verdict"] = verdict_label
                 response_payload["pms_report_status"] = "ACCEPTED"
 
@@ -3230,6 +3482,48 @@ def update_app_version():
         "version": APP_VERSION,
         "message": "Version updated successfully."
     })
+
+
+@app.route("/api/admin/jig-uid", methods=["POST"])
+def update_admin_jig_uid():
+    data = request.get_json(silent=True) or {}
+
+    jig_uid = str(data.get("jig_uid", "")).strip()
+    password = str(data.get("password", ""))
+
+    # Validate admin password.
+    if password != ADMIN_VERSION_PASSWORD:
+        return jsonify({
+            "success": False,
+            "message": "Incorrect admin password."
+        }), 401
+
+    # Validate Jig UID.
+    if not jig_uid:
+        return jsonify({
+            "success": False,
+            "message": "Please enter a Jig UID."
+        }), 400
+
+    if len(jig_uid) > 100:
+        return jsonify({
+            "success": False,
+            "message": "Jig UID must be 100 characters or fewer."
+        }), 400
+
+    # Save the new Jig UID without overwriting other settings.
+    if not update_config_value("jig_uid", jig_uid):
+        return jsonify({
+            "success": False,
+            "message": "Could not save Jig UID to pms_config.json."
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "jig_uid": jig_uid,
+        "message": "Jig UID updated and saved successfully."
+    })
+
 
 
 

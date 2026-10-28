@@ -58,6 +58,39 @@ def load_or_create_config():
         print(f"[PMS Config] Warning: Could not read {CONFIG_FILE}: {e}")
         return DEFAULT_CONFIG.copy()
 
+
+
+def update_config_value(key, value):
+    """
+    Update one setting in pms_config.json while preserving all other settings.
+    """
+    config = load_or_create_config()
+
+    config[key] = value
+
+    temp_file = CONFIG_FILE + ".tmp"
+
+    try:
+        with open(temp_file, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=4)
+
+        # Replace the original only after the temporary file is written.
+        os.replace(temp_file, CONFIG_FILE)
+
+        return True
+
+    except Exception as e:
+        print(f"[PMS Config] Error updating '{key}': {e}")
+
+        try:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+        except OSError:
+            pass
+
+        return False
+
+
 def get_pc_mac_address():
     """
     Automatically detects the physical network adapter MAC address on any Windows/Linux/macOS PC.
@@ -349,7 +382,24 @@ def build_status_validation(device_serial_no=None, apo_number_id=None, mac_id=No
     }
     return req_id, payload
 
-def build_report_store(device_serial_no=None, apo_number_id=None, takt_time=0.0, wire_origin_pass=True, vi_test_pass=True, mac_id=None, line_no=None, jig_uid=None):
+def build_report_store(
+    device_serial_no=None,
+    apo_number_id=None,
+    takt_time=0.0,
+    wire_origin_pass=True,
+    vi_test_pass=True,
+    mac_id=None,
+    line_no=None,
+    jig_uid=None,
+    pv_pass=False,
+    coil_pass=False,
+    ac_cam1_pass=False,
+    ac_cam2_pass=False,
+    pv_case_pass=False,
+    coil_case_pass=False,
+    ac_case_pass=False,
+    inspection_epoch_ms=None
+    ):
     """
     Builds the ReportStore payload (Final Test Result) to be stored in table Z_VI_TEST.
     If device_serial_no is not provided, automatically uses the Thinclient UID / MAC.
@@ -374,8 +424,16 @@ def build_report_store(device_serial_no=None, apo_number_id=None, takt_time=0.0,
     if not jig_uid:
         jig_uid = cfg.get("jig_uid", "CGJIGxxxxxxxxxx00111")
 
+    # now = datetime.now()
+    # epoch_ms = int(now.timestamp() * 1000)
     now = datetime.now()
-    epoch_ms = int(now.timestamp() * 1000)
+
+    # Use the inspection timestamp if provided; otherwise generate one.
+    epoch_ms = (
+        int(inspection_epoch_ms)
+        if inspection_epoch_ms is not None
+        else int(time.time() * 1000)
+    )
     req_id = generate_utc_request_id()
     table_report = cfg.get("table_report_store") or cfg.get("table_report", "Z_VI_TEST")
 
@@ -396,6 +454,22 @@ def build_report_store(device_serial_no=None, apo_number_id=None, takt_time=0.0,
                 "DeviceSerialNo": str(device_serial_no),
                 "TaktTime": round(float(takt_time), 3),
                 "JigUid": str(jig_uid),
+
+                # Inspection results
+                "Epoch time": epoch_ms,
+                "Serial No.": str(device_serial_no),
+                # "Final_result": "PASS" if vi_test_pass else "FAIL",
+                "Final_result": 1 if vi_test_pass else 0,
+                "PV": 1 if pv_pass else 0,
+                "Coil": 1 if coil_pass else 0,
+                "AC_Cam1": 1 if ac_cam1_pass else 0,
+                "AC_Cam2": 1 if ac_cam2_pass else 0,
+
+                "PV_case": 1 if pv_case_pass else 0,
+                "Coil_case": 1 if coil_case_pass else 0,
+                "AC_case": 1 if ac_case_pass else 0,
+
+                # Existing PMS fields — keep these
                 "WireOrigin": 1 if wire_origin_pass else 0,
                 "ViTest": 1 if vi_test_pass else 0
             }
