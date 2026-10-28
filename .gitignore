@@ -1,6 +1,7 @@
 build/
 wire
 dist
+dist
 Images
 yolov8n-pose.pt
 Result
