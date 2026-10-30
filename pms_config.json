@@ -13,5 +13,6 @@
     "testingStage": "Testing",
     "slaveVersionNo": "v7",
     "tableReportStore": "NEW ",
-    "appVersion": "v3"
+    "appVersion": "v3",
+    "pms_broker_ip": "127.0.0.1"
 }

@@ -8,11 +8,10 @@
     "pmsPublishTopicPrefix": "SELEC/PMS/PUB/G7",
     "pmsSubscribeTopicPrefix": "SELEC/PMS/SUB/G7",
     "ValidationStatus": 1,
-    "plcJigProductionLineNo": "6543211",
-    "jigUid": "09876545",
+    "plcJigProductionLineNo": "123",
+    "jigUid": "456",
     "testingStage": "Testing",
-    "slaveVersionNo": "v6",
+    "slaveVersionNo": "v7",
     "tableReportStore": "NEW ",
-    "appVersion": "v3",
-    "pms_broker_ip": "192.168.1.100"
+    "appVersion": "v3"
 }

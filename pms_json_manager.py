@@ -1372,10 +1372,9 @@ def build_report_store(
                 "JigUid": str(jig_uid),
 
                 # Inspection results
-                "Epoch time": epoch_ms,
-                "Serial No.": str(device_serial_no),
+                # "Serial No.": str(device_serial_no),
                 # "Final_result": "PASS" if vi_test_pass else "FAIL",
-                "ViInspection": 1 if vi_test_pass else 0,
+                "wiringtInspection": 1 if vi_test_pass else 0,
                 "PV": 1 if pv_pass else 0,
                 "Coil": 1 if coil_pass else 0,
                 "AC1": 1 if ac_cam1_pass else 0,
@@ -1385,9 +1384,6 @@ def build_report_store(
                 "CoilCase": 1 if coil_case_pass else 0,
                 "AcCase": 1 if ac_case_pass else 0,
 
-                # Existing PMS fields — keep these
-                "WireOrigin": 1 if wire_origin_pass else 0,
-                "ViTest": 1 if vi_test_pass else 0
             }
         ]
     }

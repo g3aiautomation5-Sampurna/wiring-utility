@@ -6,27 +6,23 @@
     "ColumnsName": [
         {
             "APoNumberId": "17",
-            "RowCreationTimeStamp": 1793331267643,
-            "RowUpdationTimeStamp": 1793331267643,
+            "RowCreationTimeStamp": 1793346771443,
+            "RowUpdationTimeStamp": 1793346771443,
             "WifiMasterMacid": "D0:F4:05:FD:5D:C8",
             "WifiDate": "30-October-2026, Friday",
-            "WifiTime": "09:04:27",
+            "WifiTime": "13:22:51",
             "PlcJigProductionLineNo": "123",
             "DeviceSerialNo": "001260101010112105100002607001973",
-            "TaktTime": 55.259,
+            "TaktTime": 11.186,
             "JigUid": "456",
-            "Epoch time": 1793331267643,
-            "Serial No.": "001260101010112105100002607001973",
-            "ViInspection": 1,
+            "wiringtInspection": 1,
             "PV": 1,
             "Coil": 1,
             "AC1": 1,
             "AC2": 1,
             "PvCase": 1,
             "CoilCase": 1,
-            "AcCase": 1,
-            "WireOrigin": 1,
-            "ViTest": 1
+            "AcCase": 1
         }
     ]
 }

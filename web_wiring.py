@@ -1370,7 +1370,7 @@
 #                     ▶ START
 #                 </button>
 
-#                 <span class="version-display" id="startVersionBadge">Production Line: 1</span>
+#                 <span class="version-display" id="startVersionBadge">GTI version: 1</span>
 #             </div>
 #         </div>
 #     </header>
@@ -5391,7 +5391,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     ▶ START
                 </button>
 
-                <span class="version-display" id="startVersionBadge">Production Line: 1</span>
+                <span class="version-display" id="startVersionBadge">GTI Version: 1</span>
             </div>
         </div>
     </header>
@@ -6843,7 +6843,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     message.style.display = "block";
                     message.style.color = "#dc2626";
                     message.textContent =
-                        "Please enter a Production Line Number.";
+                        "Please enter a GTI Version .";
                     return;
                 }
 
@@ -6853,7 +6853,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     password: password
                 };
 
-                message.textContent = "Updating Production Line Number...";
+                message.textContent = "Updating GTI Version Number...";
 
             } else {
                 return;
@@ -6911,7 +6911,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 } else if (action === "production_line") {
                     message.textContent =
                         result.message ||
-                        "Production Line Number updated successfully.";
+                        "GTI Version Number updated successfully.";
 
                     // Refresh the displayed production line number.
                     if (typeof loadCurrentVersion === "function") {
@@ -6996,7 +6996,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 });
 
                 if (!lineResponse.ok) {
-                    throw new Error("Failed to fetch Production Line Number.");
+                    throw new Error("Failed to fetch GTI Version.");
                 }
 
                 const lineResult = await lineResponse.json();
@@ -7009,7 +7009,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     productionLineBadge.textContent =
                         lineResult.success &&
                         lineResult.production_line_no
-                            ? "Production Line: " + lineResult.production_line_no
+                            ? "GTI Version: " + lineResult.production_line_no
                             : "";
                 }
 
@@ -7085,7 +7085,7 @@ HTML_PAGE = """<!DOCTYPE html>
 
                     <option value="version">Update Product Version</option>
                     <option value="jig_uid">Update Jig UID</option>
-                    <option value="production_line">Update Production Line Number</option>
+                    <option value="production_line">Update GTI Version</option>
 
                 </select>
 
@@ -7127,10 +7127,10 @@ HTML_PAGE = """<!DOCTYPE html>
 
                 <div id="productionLineFieldGroup" style="display: none;">
                     <label for="newProductionLineNo" style="display: block; margin-bottom: 8px;">
-                        New Production Line Number
+                        New GTI Version
                     </label>
                     <input type="text" id="newProductionLineNo"
-                        placeholder="Enter the production line number"
+                        placeholder="Enter the GTI Version"
                         maxlength="30" autocomplete="off"
                         style="width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 16px;">
                 </div>
@@ -7849,11 +7849,11 @@ def get_production_line():
         })
 
     except Exception as error:
-        print(f"[Production Line] Failed to read configuration: {error}")
+        print(f"[GTI Version] Failed to read configuration: {error}")
 
         return jsonify({
             "success": False,
-            "message": "Could not read Production Line Number from pms_config.json."
+            "message": "Could not read GTI Version from pms_config.json."
         }), 500
 
 
@@ -7965,13 +7965,13 @@ def update_admin_production_line():
     if not production_line_no:
         return jsonify({
             "success": False,
-            "message": "Please enter a Production Line Number."
+            "message": "Please enter a GTI Version."
         }), 400
 
     if len(production_line_no) > 30:
         return jsonify({
             "success": False,
-            "message": "Production Line Number must be 30 characters or fewer."
+            "message": "GTI Version must be 30 characters or fewer."
         }), 400
 
     # Save the Production Line Number without overwriting other settings.
@@ -7981,13 +7981,13 @@ def update_admin_production_line():
     ):
         return jsonify({
             "success": False,
-            "message": "Could not save Production Line Number to pms_config.json."
+            "message": "Could not save GTI Version to pms_config.json."
         }), 500
 
     return jsonify({
         "success": True,
         "production_line_no": production_line_no,
-        "message": "Production Line Number updated and saved successfully."
+        "message": "GTI Version updated and saved successfully."
     })
 
 
