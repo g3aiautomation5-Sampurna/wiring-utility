@@ -107,10 +107,20 @@ def run_dual_view(top_view_path, origin2_path):
           ("(Verified via Image 2)" if (origin2_pass and not um_pass) else ""))
     print(f" - Origin 3 (Bottom Right):     {'PASS' if br_pass else 'FAIL'}")
     print(f"-------------------------------------------------------")
+    # When the model runs and results into Pass then do nothing
+    # and if it fails then in an fstring store what all cases have failed
     if all_pass:
         print("FINAL COMBINED STATUS: PASS (All wiring and origins verified)")
+        failed_cases_str = ""
     else:
-        print("FINAL COMBINED STATUS: FAIL")
+        failed_cases = []
+        if not bl_pass: failed_cases.append("Case 1 (BL)")
+        if not um_pass: failed_cases.append("Case 2 (UM)")
+        if not br_pass: failed_cases.append("Case 3 (BR)")
+        if not origin2_pass: failed_cases.append("Origin 3 (Side View)")
+        failed_list = ", ".join(failed_cases)
+        failed_cases_str = f"Failed Cases: {failed_list}"
+        print(f"FINAL COMBINED STATUS: FAIL -> {failed_cases_str}")
     print("=======================================================")
 
     # 5. Save results to Result/Pass or Result/Fail

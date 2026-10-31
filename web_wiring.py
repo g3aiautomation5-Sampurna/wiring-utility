@@ -4051,6 +4051,7 @@ from pms_mqtt import pms_mqtt
 
 from detect_origin import check_origin
 from detect_origin2 import check_origin3_grommet, check_origin3_image, check_origin2_grommet, check_origin2_image
+from ultralytics import YOLO
 
 from pms_json_manager import (
     get_pc_mac_address,
@@ -4236,70 +4237,346 @@ def encode_image_to_base64(img_bgr):
         return None
     return "data:image/jpeg;base64," + base64.b64encode(buf).decode("utf-8")
 
+# ================= YOLO MODELS LOADING =================
+TOP_POSE_MODEL_PATH = os.path.join(BASE_DIR, "models", "wire_pose_model.pt")
+if not os.path.exists(TOP_POSE_MODEL_PATH):
+    TOP_POSE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n-pose.pt")
+
+SIDE_MODEL_PATH = os.path.join(BASE_DIR, "models", "origin3_model.pt")
+if not os.path.exists(SIDE_MODEL_PATH):
+    SIDE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n.pt")
+
+if not os.path.exists(TOP_POSE_MODEL_PATH) and os.path.isdir(os.path.join(BASE_DIR, "models")):
+    for _fname in os.listdir(os.path.join(BASE_DIR, "models")):
+        if _fname.endswith(".pt") and "pose" in _fname.lower():
+            TOP_POSE_MODEL_PATH = os.path.join(BASE_DIR, "models", _fname)
+            break
+
+if not os.path.exists(SIDE_MODEL_PATH) and os.path.isdir(os.path.join(BASE_DIR, "models")):
+    for _fname in os.listdir(os.path.join(BASE_DIR, "models")):
+        if _fname.endswith(".pt") and os.path.join(BASE_DIR, "models", _fname) != TOP_POSE_MODEL_PATH:
+            SIDE_MODEL_PATH = os.path.join(BASE_DIR, "models", _fname)
+            break
+
+top_pose_model = None
+side_model = None
+
+try:
+    if os.path.exists(TOP_POSE_MODEL_PATH):
+        top_pose_model = YOLO(TOP_POSE_MODEL_PATH)
+        print(f"[YOLO] Loaded top pose estimation model from {TOP_POSE_MODEL_PATH}")
+    else:
+        print(f"[YOLO Warning] Top pose model file not found at {TOP_POSE_MODEL_PATH}")
+except Exception as e:
+    print(f"[YOLO Error] Failed to load top pose model: {e}")
+
+try:
+    if os.path.exists(SIDE_MODEL_PATH):
+        side_model = YOLO(SIDE_MODEL_PATH)
+        print(f"[YOLO] Loaded side detection model from {SIDE_MODEL_PATH}")
+    else:
+        print(f"[YOLO Warning] Side model file not found at {SIDE_MODEL_PATH}")
+except Exception as e:
+    print(f"[YOLO Error] Failed to load side model: {e}")
+
+
+def evaluate_top_pose_model(model, img_bgr):
+    """
+    Infers on top image with the wire pose estimation model.
+    Evaluates:
+      - Bottom cases (Bottom Left & Bottom Right):
+        Red wire's socket or terminal should be on the left to the socket or terminal of black wire.
+      - Upper middle:
+        Red wire's socket or terminal should be on the right of the socket or terminal of black wire.
+
+      - Below left wire origins:
+        Red wire's origin should be below black wire's origin.
+      - Below right wire origins:
+        Both wire origins should just exist.
+      - Upper middle wire origins:
+        The red wire's origin should be on the left of the black wire's origin.
+
+    When model runs and results into Pass -> do nothing
+    When it fails -> in an fstring store what all cases have failed
+    """
+    if img_bgr is None:
+        failed_cases_str = f"Failed Cases: Case 1 (BL), Case 2 (UM), Case 3 (BR) (Image missing)"
+        return False, None, [], False, False, False, False, False, False, failed_cases_str, []
+
+    img_resized = cv2.resize(img_bgr, (1024, 576))
+    if model is None:
+        failed_cases_str = f"Failed Cases: Case 1 (BL), Case 2 (UM), Case 3 (BR) (Model not loaded)"
+        return False, img_resized, ["Model not loaded"], False, False, False, False, False, False, failed_cases_str, []
+
+    results = model(img_resized, verbose=False)
+    res = results[0]
+    annotated = res.plot()
+
+    detected_labels = []
+    names = res.names or {}
+    kpts_data = res.keypoints.data.cpu().numpy() if res.keypoints is not None and len(res.keypoints.data) > 0 else None
+
+    c1_red = c1_blk = c2_red = c2_blk = c3_red = c3_blk = None
+    has_defect = False
+
+    if len(res.boxes) > 0:
+        for idx, box in enumerate(res.boxes):
+            cls_id = int(box.cls[0].item()) if hasattr(box.cls, '__len__') else int(box.cls)
+            conf = float(box.conf[0].item()) if hasattr(box.conf, '__len__') else float(box.conf)
+            name = str(names.get(cls_id, cls_id)).lower()
+
+            # Ignore background COCO objects
+            if any(w in name for w in ['person', 'suitcase', 'backpack', 'tie', 'bottle', 'chair', 'cup', 'bed', 'laptop']):
+                continue
+
+            detected_labels.append(f"{name} ({conf:.2f})")
+            if any(w in name for w in ['fail', 'defect', 'ng', 'bad', 'wrong', 'error']):
+                has_defect = True
+
+            if 'wire_red' not in name and 'wire_black' not in name:
+                continue
+
+            xyxy = box.xyxy[0].tolist() if hasattr(box.xyxy, '__len__') else box.xyxy.tolist()
+            cx = (xyxy[0] + xyxy[2]) / (2.0 * 1024.0)
+            cy = (xyxy[1] + xyxy[3]) / (2.0 * 576.0)
+            kp = kpts_data[idx] if kpts_data is not None and idx < len(kpts_data) else None
+
+            wire_info = {'name': name, 'conf': conf, 'kp': kp, 'xyxy': xyxy}
+
+            if cy < 0.40:
+                # Upper Middle (Case 2 / Origin 2)
+                if 'wire_red' in name and (c2_red is None or conf > c2_red['conf']):
+                    c2_red = wire_info
+                elif 'wire_black' in name and (c2_blk is None or conf > c2_blk['conf']):
+                    c2_blk = wire_info
+            elif cx < 0.50:
+                # Below Left (Case 1 / Origin 1)
+                if 'wire_red' in name and (c1_red is None or conf > c1_red['conf']):
+                    c1_red = wire_info
+                elif 'wire_black' in name and (c1_blk is None or conf > c1_blk['conf']):
+                    c1_blk = wire_info
+            else:
+                # Below Right (Case 3 / Origin 3 Top)
+                if 'wire_red' in name and (c3_red is None or conf > c3_red['conf']):
+                    c3_red = wire_info
+                elif 'wire_black' in name and (c3_blk is None or conf > c3_blk['conf']):
+                    c3_blk = wire_info
+
+    top_fail_details = []
+
+    # 1. Below Left (Case 1 / Origin 1)
+    # Origin rule: Red wire's origin should be below black wire's origin (red.y > blk.y in image coords)
+    # Terminal rule: Red wire's socket or terminal should be on the left of black wire's socket or terminal (red.x < blk.x)
+    if c1_red is None or c1_blk is None or c1_red['kp'] is None or c1_blk['kp'] is None:
+        obl_pass = False
+        c1_pass = False
+        missing = []
+        if c1_red is None: missing.append("red wire")
+        if c1_blk is None: missing.append("black wire")
+        missing_str = ", ".join(missing) if missing else "wires"
+        top_fail_details.append({"item": "Case 1: Bottom Left", "reason": f"Missing {missing_str}"})
+        top_fail_details.append({"item": "Origin 1 (Bottom Left)", "reason": f"Missing {missing_str}"})
+    else:
+        # kp 0 = origin, kp 2 = terminal
+        obl_pass = bool(c1_red['kp'][0][1] > c1_blk['kp'][0][1] and not has_defect)
+        c1_term_pass = bool(c1_red['kp'][2][0] < c1_blk['kp'][2][0] and not has_defect)
+        c1_pass = bool(c1_term_pass and not has_defect)
+        if not obl_pass:
+            top_fail_details.append({"item": "Origin 1 (Bottom Left)", "reason": "Red wire origin is not below black wire origin"})
+        if not c1_pass:
+            top_fail_details.append({"item": "Case 1: Bottom Left", "reason": "Red wire terminal is not to the left of black wire terminal"})
+
+    # 2. Upper Middle (Case 2 / Origin 2)
+    # Origin rule: The red wire's origin should be on the left of the black wire's origin (red.x < blk.x)
+    # Terminal rule: The red wire's socket or terminal should be on the right of the socket or terminal of black wire (red.x > blk.x)
+    if c2_red is None or c2_blk is None or c2_red['kp'] is None or c2_blk['kp'] is None:
+        oum_pass = False
+        c2_pass = False
+        missing = []
+        if c2_red is None: missing.append("red wire")
+        if c2_blk is None: missing.append("black wire")
+        missing_str = ", ".join(missing) if missing else "wires"
+        top_fail_details.append({"item": "Case 2: Upper Middle", "reason": f"Missing {missing_str}"})
+        top_fail_details.append({"item": "Origin 2 (Upper Middle)", "reason": f"Missing {missing_str}"})
+    else:
+        oum_pass = bool(c2_red['kp'][0][0] < c2_blk['kp'][0][0] and not has_defect)
+        c2_term_pass = bool(c2_red['kp'][2][0] > c2_blk['kp'][2][0] and not has_defect)
+        c2_pass = bool(c2_term_pass and not has_defect)
+        if not oum_pass:
+            top_fail_details.append({"item": "Origin 2 (Upper Middle)", "reason": "Red wire origin is not to the left of black wire origin"})
+        if not c2_pass:
+            top_fail_details.append({"item": "Case 2: Upper Middle", "reason": "Red wire terminal is not to the right of black wire terminal"})
+
+    # 3. Below Right (Case 3 / Origin 3 Top)
+    # Origin rule: Both wire origins should just exist
+    # Terminal rule: The red wire's socket or terminal should be on the left to the socket or terminal of the black wire (red.x < blk.x)
+    if c3_red is None or c3_blk is None or c3_red['kp'] is None or c3_blk['kp'] is None:
+        obr_pass = False
+        c3_pass = False
+        missing = []
+        if c3_red is None: missing.append("red wire")
+        if c3_blk is None: missing.append("black wire")
+        missing_str = ", ".join(missing) if missing else "wires"
+        top_fail_details.append({"item": "Case 3: Bottom Right", "reason": f"Missing {missing_str}"})
+        top_fail_details.append({"item": "Origin 3 (Bottom Right)", "reason": f"Missing {missing_str}"})
+    else:
+        obr_pass = bool(c3_red['kp'][0][2] > 0.20 and c3_blk['kp'][0][2] > 0.20 and not has_defect)
+        c3_term_pass = bool(c3_red['kp'][2][0] < c3_blk['kp'][2][0] and not has_defect)
+        c3_pass = bool(c3_term_pass and not has_defect)
+        if not obr_pass:
+            top_fail_details.append({"item": "Origin 3 (Bottom Right)", "reason": "Wire origins not detected"})
+        if not c3_term_pass:
+            top_fail_details.append({"item": "Case 3: Bottom Right", "reason": "Red wire terminal is not to the left of black wire terminal"})
+
+    is_top_pass = bool(obl_pass and oum_pass and obr_pass and c1_pass and c2_pass and c3_pass and not has_defect)
+
+    # When the model runs and results into Pass then do nothing
+    # and if it fails then in an fstring store what all cases have failed
+    if is_top_pass:
+        failed_cases_str = ""
+    else:
+        failed_cases = []
+        if not obl_pass: failed_cases.append("Origin 1 (BL)")
+        if not oum_pass: failed_cases.append("Origin 2 (UM)")
+        if not obr_pass: failed_cases.append("Origin 3 (BR Top)")
+        if not c1_pass: failed_cases.append("Case 1 (BL)")
+        if not c2_pass: failed_cases.append("Case 2 (UM)")
+        if not c3_pass: failed_cases.append("Case 3 (BR)")
+        failed_list = ", ".join(failed_cases)
+        failed_cases_str = f"Failed Cases: {failed_list}"
+
+    return (
+        is_top_pass, annotated, detected_labels,
+        obl_pass, oum_pass, obr_pass,
+        c1_pass, c2_pass, c3_pass,
+        failed_cases_str, top_fail_details
+    )
+
+
+def evaluate_side_model(model, img_bgr):
+    """
+    Infers on side image with the Origin 3 detection model.
+    When model runs and results into Pass -> do nothing
+    When it fails -> in an fstring store what all cases have failed
+    """
+    if img_bgr is None:
+        failed_cases_str = f"Failed Cases: Origin 3 (Side View) (Image missing)"
+        return False, None, [], failed_cases_str
+
+    img_resized = cv2.resize(img_bgr, (1024, 576))
+    if model is None:
+        failed_cases_str = f"Failed Cases: Origin 3 (Side View) (Model not loaded)"
+        return False, img_resized, ["Model not loaded"], failed_cases_str
+
+    results = model(img_resized, verbose=False)
+    res = results[0]
+    annotated = res.plot()
+
+    detected_labels = []
+    has_defect = False
+    has_origin3 = False
+    names = res.names or {}
+
+    if len(res.boxes) > 0:
+        for box in res.boxes:
+            cls_id = int(box.cls[0].item()) if hasattr(box.cls, '__len__') else int(box.cls)
+            conf = float(box.conf[0].item()) if hasattr(box.conf, '__len__') else float(box.conf)
+            name = str(names.get(cls_id, cls_id)).lower()
+
+            if any(w in name for w in ['person', 'suitcase', 'backpack', 'tie', 'bottle', 'chair', 'cup', 'bed', 'laptop']):
+                continue
+
+            detected_labels.append(f"{name} ({conf:.2f})")
+            if any(w in name for w in ['fail', 'defect', 'ng', 'bad', 'wrong', 'error']):
+                has_defect = True
+            if 'origin_3' in name or 'origin3' in name or 'pass' in name or 'ok' in name:
+                has_origin3 = True
+
+    is_side_pass = bool(has_origin3 and not has_defect)
+
+    # When the model runs and results into Pass then do nothing
+    # and if it fails then in an fstring store what all cases have failed
+    if is_side_pass:
+        failed_cases_str = ""
+    else:
+        failed_cases_str = f"Failed Cases: Origin 3 (Side View)"
+
+    return is_side_pass, annotated, detected_labels, failed_cases_str
+
+
+def evaluate_yolo_detection(model, img_bgr, is_pose=False):
+    """Compatibility helper for generic YOLO evaluation."""
+    if is_pose:
+        (
+            is_pass, annotated, detected_labels,
+            obl_pass, oum_pass, obr_pass,
+            c1_pass, c2_pass, c3_pass,
+            _, _
+        ) = evaluate_top_pose_model(model, img_bgr)
+    else:
+        is_pass, annotated, detected_labels, _ = evaluate_side_model(model, img_bgr)
+    return is_pass, annotated, detected_labels
+
+
 def process_top_inspection(img_raw):
-    img_top = cv2.resize(img_raw, (1024, 576))
-    hsv_top = cv2.cvtColor(img_top, cv2.COLOR_BGR2HSV)
+    """
+    Top image detected by the pose estimation model.
+    Evaluates:
+      - Wire Origins (obl_pass, oum_pass, obr_pass)
+      - Wire Routing (c1_pass, c2_pass, c3_pass)
+    """
+    (
+        is_top_pass, img_annotated, detected_labels,
+        obl_pass, oum_pass, obr_pass,
+        c1_pass, c2_pass, c3_pass,
+        failed_cases_str, top_fail_details
+    ) = evaluate_top_pose_model(top_pose_model, img_raw)
 
-    # 1. ORIGINS EVALUATION & ANNOTATION
-    origin_pass, top_failed_origins, origin_details = check_origin(img_top)
-    obl_pass = origin_details.get('case1_bl', {}).get('pass', False)
-    oum_pass = origin_details.get('case2_um', {}).get('pass', False)
-    obr_pass = origin_details.get('case3_br', {}).get('pass', False)
+    if img_annotated is None:
+        img_annotated = cv2.resize(img_raw, (1024, 576)) if img_raw is not None else np.zeros((576, 1024, 3), dtype=np.uint8)
 
-    img_origins = img_top.copy()
-    draw_labeled_box(img_origins, (370, 410), (470, 565), obl_pass, "Origin 1 (BL)")
-    draw_labeled_box(img_origins, (470, 15), (690, 100), oum_pass, "Origin 2 (UM)")
-    draw_labeled_box(img_origins, (540, 415), (660, 565), obr_pass, "Origin 3 (BR)")
-
-    # 2. WIRES EVALUATION & ANNOTATION
-    mask_r = cv2.inRange(hsv_top, (0, 100, 50), (12, 255, 255)) + cv2.inRange(hsv_top, (160, 100, 50), (180, 255, 255))
-    mask_b = cv2.inRange(hsv_top, (0, 0, 0), (180, 255, 45))
-
-    # Case 1 (BL)
-    bl_r = mask_r[270:330, 310:470]
-    bl_b = mask_b[270:330, 310:470]
-    xr_bl = np.where(bl_r > 0)[1]
-    xb_bl = np.where(bl_b > 0)[1]
-    rx_bl = np.median(xr_bl) if len(xr_bl) else -1
-    bx_bl = np.median(xb_bl) if len(xb_bl) else -1
-    bl_wire_pass = bool(rx_bl < bx_bl) if (rx_bl != -1 and bx_bl != -1) else True
-    # Case 2 (UM) - Detect only origins; if origins pass, wiring passes
-    um_wire_pass = bool(oum_pass)
-
-    # Case 3 (BR) - Wire routing at PCB exit (y: 390..440, x: 570..670)
-    br_r = mask_r[390:440, 570:670]
-    br_b = mask_b[390:440, 570:670]
-    xr_br = np.where(br_r > 0)[1] + 570
-    xb_br = np.where(br_b > 0)[1] + 570
-    rx_br = np.median(xr_br) if len(xr_br) > 15 else -1
-    bx_br = np.median(xb_br) if len(xb_br) > 15 else -1
-    br_wire_pass = bool(rx_br < bx_br) if (rx_br != -1 and bx_br != -1) else True
-
-    img_wires = img_top.copy()
-    draw_labeled_box(img_wires, (310, 260), (470, 555), bl_wire_pass, "Case 1 (BL)")
-    draw_labeled_box(img_wires, (470, 0), (710, 200), um_wire_pass, "Case 2 (UM)")
-    draw_labeled_box(img_wires, (570, 385), (715, 565), br_wire_pass, "Case 3 (BR)")
+    encoded_annotated = encode_image_to_base64(img_annotated)
 
     return {
-        "top_wires_annotated": encode_image_to_base64(img_wires),
-        "top_origins_annotated": encode_image_to_base64(img_origins),
-        "img_wires": img_wires,
-        "img_origins": img_origins,
+        "top_wires_annotated": encoded_annotated,
+        "top_origins_annotated": encoded_annotated,
+        "img_wires": img_annotated,
+        "img_origins": img_annotated,
+        "top_pass": bool(is_top_pass),
         "obl_pass": bool(obl_pass),
         "oum_pass": bool(oum_pass),
         "obr_pass": bool(obr_pass),
-        "c1_pass": bool(bl_wire_pass),
-        "c2_pass": bool(um_wire_pass),
-        "c3_pass": bool(br_wire_pass)
+        "c1_pass": bool(c1_pass),
+        "c2_pass": bool(c2_pass),
+        "c3_pass": bool(c3_pass),
+        "detected_labels": detected_labels,
+        "failed_cases_str": failed_cases_str,
+        "fail_details": top_fail_details
     }
 
+
 def process_orig3_inspection(img_raw):
-    is_p, img_o3, failed_o3, details_o3 = check_origin3_image(img_raw, save_result=False)
+    """
+    Side image detected by the other model.
+    Evaluates Origin 3 (Side View).
+    """
+    is_side_pass, img_annotated, detected_labels, failed_cases_str = evaluate_side_model(side_model, img_raw)
+    if img_annotated is None:
+        img_annotated = cv2.resize(img_raw, (1024, 576)) if img_raw is not None else np.zeros((576, 1024, 3), dtype=np.uint8)
+
+    encoded_annotated = encode_image_to_base64(img_annotated)
+    failed_reasons = [] if is_side_pass else ["Side model did not detect Origin 3."]
+
     return {
-        "orig3_annotated": encode_image_to_base64(img_o3),
-        "img_o3": img_o3,
-        "orig3_grommet_pass": bool(is_p),
-        "failed_reasons": failed_o3
+        "orig3_annotated": encoded_annotated,
+        "orig2_annotated": encoded_annotated,
+        "img_o3": img_annotated,
+        "orig3_grommet_pass": bool(is_side_pass),
+        "orig2_grommet_pass": bool(is_side_pass),
+        "side_pass": bool(is_side_pass),
+        "failed_reasons": failed_reasons,
+        "detected_labels": detected_labels,
+        "failed_cases_str": failed_cases_str
     }
 
 process_orig2_inspection = process_orig3_inspection
@@ -5231,6 +5508,114 @@ HTML_PAGE = """<!DOCTYPE html>
             color: #f87171;
         }
 
+        /* Simplified Inspection Result Card */
+        .result-idle-state {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+        }
+
+        .result-pass-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1.5px solid rgba(16, 185, 129, 0.45);
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .pass-badge-large {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #10b981;
+            text-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-fail-state {
+            display: flex;
+            flex-direction: column;
+            padding: 16px 14px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1.5px solid rgba(239, 68, 68, 0.45);
+            border-radius: var(--radius-md);
+            gap: 12px;
+        }
+
+        .fail-badge-large {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #ef4444;
+            text-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fail-list-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #f87171;
+            margin-top: 2px;
+        }
+
+        .fail-items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .fail-item-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: rgba(239, 68, 68, 0.12);
+            border-left: 3px solid #ef4444;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #fee2e2;
+            line-height: 1.4;
+        }
+
+        .fail-item-row .fail-icon {
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 13px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .fail-item-row .fail-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .fail-item-row .fail-name {
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 12px;
+        }
+
+        .fail-item-row .fail-subtext {
+            font-size: 11px;
+            color: #fca5a5;
+            margin-top: 2px;
+        }
+
         /* Diagnostics Accordion */
         details {
             background: var(--bg-surface);
@@ -5469,47 +5854,75 @@ HTML_PAGE = """<!DOCTYPE html>
                 <div class="verdict-desc" id="verdictDesc">Scan QR code to validate with PMS server & activate START button</div>
             </div>
 
-            <!-- Unified Results Checklist -->
-            <div class="sidebar-card">
+            <!-- Inspection Results Card -->
+            <div class="sidebar-card" id="resultsSidebarCard">
                 <div class="section-header">
-                    <span>Origins Verification</span>
-                    <span style="font-size: 10px; color: var(--text-muted);">Dual Camera Check</span>
+                    <span>Inspection Summary</span>
+                    <span style="font-size: 10px; color: var(--text-muted);">AI Validation</span>
                 </div>
-                <div class="check-table">
-                    <div class="check-row">
-                        <div class="check-name">Origin 3 (Grommet View)</div>
-                        <span class="status-pill" id="pillOrig3Grommet">—</span>
+
+                <!-- Idle state: before inspection runs -->
+                <div id="resultsIdleState" class="result-idle-state">
+                    <span class="status-pill">—</span>
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">Awaiting Inspection</span>
+                </div>
+
+                <!-- Detailed Case Checklist Table (shows pass or fail for all cases) -->
+                <div id="resultsGrid" style="display: none; margin-top: 10px;">
+                    <div class="section-header">
+                        <span>Wire Origins</span>
+                        <span style="font-size: 10px; color: var(--text-muted);">Side & Top View</span>
                     </div>
-                    <div class="check-row">
-                        <div class="check-name">Origin 1 (Bottom Left)</div>
-                        <span class="status-pill" id="pillObl">—</span>
+                    <div class="check-table">
+                        <div class="check-row">
+                            <div class="check-name">Origin 3 (Grommet)</div>
+                            <span class="status-pill" id="pillOrig3Grommet">—</span>
+                        </div>
+                        <div class="check-row">
+                            <div class="check-name">Origin 1 (Bottom Left)</div>
+                            <span class="status-pill" id="pillObl">—</span>
+                        </div>
+                        <div class="check-row">
+                            <div class="check-name">Origin 2 (Upper Middle)</div>
+                            <span class="status-pill" id="pillOum">—</span>
+                        </div>
+                        <div class="check-row">
+                            <div class="check-name">Origin 3 (Bottom Right)</div>
+                            <span class="status-pill" id="pillObr">—</span>
+                        </div>
                     </div>
-                    <div class="check-row">
-                        <div class="check-name">Origin 2 (Top Middle)</div>
-                        <span class="status-pill" id="pillOum">—</span>
+
+                    <div class="section-header" style="margin-top: 14px;">
+                        <span>Wiring Routing</span>
+                        <span style="font-size: 10px; color: var(--text-muted);">Top View</span>
                     </div>
-                    <div class="check-row">
-                        <div class="check-name">Origin 3 (Bottom Right)</div>
-                        <span class="status-pill" id="pillObr">—</span>
+                    <div class="check-table">
+                        <div class="check-row">
+                            <div class="check-name">Case 1: Bottom Left</div>
+                            <span class="status-pill" id="pillC1">—</span>
+                        </div>
+                        <div class="check-row">
+                            <div class="check-name">Case 2: Upper Middle</div>
+                            <span class="status-pill" id="pillC2">—</span>
+                        </div>
+                        <div class="check-row">
+                            <div class="check-name">Case 3: Bottom Right</div>
+                            <span class="status-pill" id="pillC3">—</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="section-header" style="margin-top: 14px;">
-                    <span>Wiring Routing</span>
-                    <span style="font-size: 10px; color: var(--text-muted);">Top View</span>
+                <!-- Pass state: ONLY display Pass when the inspection passes -->
+                <div id="resultsPassState" class="result-pass-state" style="display: none; margin-top: 12px;">
+                    <div class="pass-badge-large">✔ PASS</div>
                 </div>
-                <div class="check-table">
-                    <div class="check-row">
-                        <div class="check-name">Case 1: Bottom Left</div>
-                        <span class="status-pill" id="pillC1">—</span>
-                    </div>
-                    <div class="check-row">
-                        <div class="check-name">Case 2: Upper Middle</div>
-                        <span class="status-pill" id="pillC2">—</span>
-                    </div>
-                    <div class="check-row">
-                        <div class="check-name">Case 3: Bottom Right</div>
-                        <span class="status-pill" id="pillC3">—</span>
+
+                <!-- Fail state: In case of fail, tell what all things failed -->
+                <div id="resultsFailState" class="result-fail-state" style="display: none; margin-top: 12px;">
+                    <div class="fail-badge-large">✖ FAIL</div>
+                    <div class="fail-list-title" style="margin-top: 6px;">Failed Checks:</div>
+                    <div class="fail-items-container" id="failItemsContainer">
+                        <!-- Populated dynamically with failed items -->
                     </div>
                 </div>
             </div>
@@ -5576,7 +5989,19 @@ HTML_PAGE = """<!DOCTYPE html>
                 singleResultImg.style.display = "none";
             }
 
-            // Clear inspection result indicators.
+            // Reset simplified inspection result card
+            const resultsIdle = document.getElementById("resultsIdleState");
+            const resultsGrid = document.getElementById("resultsGrid");
+            const resultsPass = document.getElementById("resultsPassState");
+            const resultsFail = document.getElementById("resultsFailState");
+            const failItemsContainer = document.getElementById("failItemsContainer");
+            if (resultsIdle) resultsIdle.style.display = "flex";
+            if (resultsGrid) resultsGrid.style.display = "none";
+            if (resultsPass) resultsPass.style.display = "none";
+            if (resultsFail) resultsFail.style.display = "none";
+            if (failItemsContainer) failItemsContainer.innerHTML = "";
+
+            // Clear inspection result indicators (safe fallback)
             [
                 "pillOrig3Grommet",
                 "pillObl",
@@ -6097,10 +6522,7 @@ HTML_PAGE = """<!DOCTYPE html>
             const sx = overlayTop.width / 1024;
             const sy = overlayTop.height / 576;
 
-            drawGuideBox(ctx, 250*sx, 10*sy, 780*sx, 570*sy, '#38bdf8', 'PCB Alignment');
-            drawGuideBox(ctx, 370*sx, 410*sy, 470*sx, 565*sy, '#a78bfa', 'Origin 1');
-            drawGuideBox(ctx, 470*sx, 15*sy, 690*sx, 100*sy, '#a78bfa', 'Origin 2');
-            drawGuideBox(ctx, 540*sx, 415*sy, 660*sx, 565*sy, '#a78bfa', 'Origin 3');
+            // Coordinate-based ROIs removed
 
             animFrameTop = requestAnimationFrame(renderTopGuides);
         }
@@ -6119,7 +6541,7 @@ HTML_PAGE = """<!DOCTYPE html>
             const sx = overlayOrig3.width / 1024;
             const sy = overlayOrig3.height / 576;
 
-            drawGuideBox(ctx, 80*sx, 260*sy, 280*sx, 490*sy, '#38bdf8', 'Origin 3 Target');
+            // Coordinate-based ROIs removed
 
             animFrameOrig3 = requestAnimationFrame(renderOrig3Guides);
         }
@@ -6280,10 +6702,8 @@ HTML_PAGE = """<!DOCTYPE html>
             const pmsStatus = data.pms_report_status || "UNREACHABLE";
             const pmsResponse = data.pms_mqtt_response || {};
 
-            setPill(
-                'pillOrig3Grommet',
-                r.orig3_grommet_pass ?? r.orig2_grommet_pass
-            );
+            // Safe update for any existing pills
+            setPill('pillOrig3Grommet', r.orig3_grommet_pass ?? r.orig2_grommet_pass);
             setPill('pillObl', r.obl_pass);
             setPill('pillOum', r.oum_pass);
             setPill('pillObr', r.obr_pass);
@@ -6299,47 +6719,94 @@ HTML_PAGE = """<!DOCTYPE html>
             verdictDevice.innerText = "";
             verdictDevice.style.display = "none";
 
-            // Display the final outcome, not data.combined_pass.
-            if (finalVerdict === "SERVER UNREACHABLE") {
-                banner.className = "verdict-box fail";
-                verdictText.innerText = "SERVER UNREACHABLE";
+            // Update Inspection Result Card
+            const idleState = document.getElementById('resultsIdleState');
+            const resultsGrid = document.getElementById('resultsGrid');
+            const passState = document.getElementById('resultsPassState');
+            const failState = document.getElementById('resultsFailState');
+            const failContainer = document.getElementById('failItemsContainer');
 
-                verdictDesc.innerText =
-                    pmsResponse.message ||
-                    "No matching response received from PMS. Please check the server and MQTT connection.";
+            if (idleState) idleState.style.display = 'none';
+            if (resultsGrid) resultsGrid.style.display = 'block';
 
-            } else if (pmsStatus === "REJECTED") {
-                banner.className = "verdict-box fail";
-                verdictText.innerText = "FAIL";
+            const isOverallPass = data.combined_pass === true && (finalVerdict === "PASS" || finalVerdict === "SERVER UNREACHABLE" || pmsStatus === "SKIPPED");
 
-                const reason =
-                    data.pms_rejection_reason ||
-                    pmsResponse.reason ||
-                    pmsResponse.request_status ||
-                    "PMS rejected the ReportStore request.";
+            if (isOverallPass) {
+                // PASS CASE: ONLY display Pass
+                if (passState) passState.style.display = 'flex';
+                if (failState) failState.style.display = 'none';
 
-                verdictDesc.innerText = `PMS rejected ReportStore: ${reason}`;
-                
-
-            } else if (pmsStatus === "ACCEPTED" && finalVerdict === "PASS") {
                 banner.className = "verdict-box pass";
                 verdictText.innerText = "PASS";
-                verdictDesc.innerText =
-                    "AI inspection passed and PMS accepted ReportStore.";
-
-            } else if (pmsStatus === "ACCEPTED" && finalVerdict === "FAIL") {
-                banner.className = "verdict-box fail";
-                verdictText.innerText = "FAIL";
-                verdictDesc.innerText =
-                    "AI inspection failed. PMS accepted ReportStore.";
-
+                verdictDesc.innerText = "AI inspection passed and PMS accepted ReportStore.";
             } else {
-                // Fail safely if the backend did not provide a recognized
-                // final verdict and PMS validation status.
+                // FAIL CASE: Tell what all things failed
+                if (passState) passState.style.display = 'none';
+                if (failState) failState.style.display = 'flex';
+
+                if (failContainer) {
+                    failContainer.innerHTML = '';
+                    let failures = [];
+
+                    if (data.fail_details && Array.isArray(data.fail_details) && data.fail_details.length > 0) {
+                        failures = data.fail_details;
+                    } else if (data.fail_items && Array.isArray(data.fail_items) && data.fail_items.length > 0) {
+                        failures = data.fail_items.map(t => {
+                            const p = t.split(':');
+                            return { item: p[0].trim(), reason: p.slice(1).join(':').trim() || "Check failed" };
+                        });
+                    } else {
+                        if (data.is_top_pass === false || !r.c1_pass) {
+                            failures.push({ item: "Top View (Wire Pose Model)", reason: "Red/black wire routing or keypoints missing" });
+                        }
+                        if (data.is_side_pass === false || !(r.orig3_grommet_pass ?? r.orig2_grommet_pass)) {
+                            failures.push({ item: "Side View (Origin 3 Model)", reason: "Origin 3 grommet not detected" });
+                        }
+                        if (pmsStatus === "REJECTED") {
+                            failures.push({ item: "PMS ReportStore", reason: data.pms_rejection_reason || pmsResponse.reason || "Rejected by PMS" });
+                        } else if (finalVerdict === "SERVER UNREACHABLE" || pmsStatus === "UNREACHABLE") {
+                            failures.push({ item: "PMS Connection", reason: "Server unreachable / no MQTT response" });
+                        }
+                    }
+
+                    if (failures.length === 0) {
+                        failures.push({ item: "Inspection", reason: "AI validation criteria not met" });
+                    }
+
+                    failures.forEach(f => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'fail-item-row';
+                        itemDiv.innerHTML = `
+                            <span class="fail-icon">✖</span>
+                            <div class="fail-text">
+                                <div class="fail-name">${f.item || f.name || "Failed Check"}</div>
+                                <div class="fail-subtext">${f.reason || "Check failed"}</div>
+                            </div>
+                        `;
+                        failContainer.appendChild(itemDiv);
+                    });
+                }
+
                 banner.className = "verdict-box fail";
-                verdictText.innerText = "SERVER UNREACHABLE";
-                verdictDesc.innerText =
-                    "PMS validation status is missing or invalid. Check the backend logs.";
+                if (finalVerdict === "SERVER UNREACHABLE") {
+                    verdictText.innerText = "SERVER UNREACHABLE";
+                    verdictDesc.innerText =
+                        pmsResponse.message ||
+                        "No matching response received from PMS. Please check the server and MQTT connection.";
+
+                } else if (pmsStatus === "REJECTED") {
+                    verdictText.innerText = "FAIL";
+                    const reason =
+                        data.pms_rejection_reason ||
+                        pmsResponse.reason ||
+                        pmsResponse.request_status ||
+                        "PMS rejected the ReportStore request.";
+                    verdictDesc.innerText = `PMS rejected ReportStore: ${reason}`;
+
+                } else {
+                    verdictText.innerText = "FAIL";
+                    verdictDesc.innerText = "AI inspection failed. PMS accepted ReportStore.";
+                }
             }
 
             banner.style.display = "flex";
@@ -7456,7 +7923,10 @@ def inspect_endpoint():
             response_payload["orig3_annotated"] = orig3_res["orig3_annotated"]
             response_payload["orig2_annotated"] = orig3_res["orig3_annotated"]
 
-    # Decision Engine: Combine results from both cameras
+    # Decision Engine: Top image detected by pose estimation model, side image by other model
+    is_top_pass = top_res.get("top_pass", False)
+    is_side_pass = orig3_res.get("side_pass", False)
+
     obl_pass = top_res.get("obl_pass", False)
     oum_pass = top_res.get("oum_pass", False)
     raw_obr_pass = top_res.get("obr_pass", False)
@@ -7465,12 +7935,10 @@ def inspect_endpoint():
     c3_pass = top_res.get("c3_pass", False)
     orig3_grommet_pass = orig3_res.get("orig3_grommet_pass", False)
 
-    # Effective Origin 3: Passes if dedicated Arducam_ORIGIN passes OR top view passes
-    effective_origin3_pass = raw_obr_pass or orig3_grommet_pass
-
-    wire_all_pass = c1_pass and c2_pass and c3_pass
-    origins_all_pass = obl_pass and oum_pass and effective_origin3_pass
-    combined_pass = wire_all_pass and origins_all_pass
+    effective_origin3_pass = is_side_pass
+    wire_all_pass = is_top_pass
+    origins_all_pass = is_top_pass and is_side_pass
+    combined_pass = is_top_pass and is_side_pass
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     timestamp_file = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -7479,33 +7947,23 @@ def inspect_endpoint():
     notes_lines.append(f"═════════════ INSPECTION LOG: {serial_no} ═════════════")
     notes_lines.append(f"🏷️  Device Serial: {serial_no} | APO Number ID: {apo_id}\n")
 
-    # 1. Wire Paths
-    notes_lines.append("🔌 WIRE ROUTING PATHS (Arducam_TOP):")
-    notes_lines.append(f" • Case 1 (Bottom Left):  {'✔ PASS' if c1_pass else '✖ FAIL (Red is on Right)'}")
-    notes_lines.append("   👉 Correct Rule: Red wire MUST be on LEFT of Black wire.\n")
+    # 1. Top View (Pose Estimation Model)
+    notes_lines.append("🔌 TOP VIEW (Arducam_TOP - Pose Estimation Model):")
+    notes_lines.append(f" • Top Pose Inspection: {'✔ PASS' if is_top_pass else '✖ FAIL'}")
+    top_lbls = top_res.get("detected_labels") or []
+    if top_lbls:
+        notes_lines.append(f" • Detections: {', '.join(top_lbls)}\n")
+    else:
+        notes_lines.append(" • Detections: None\n")
 
-    notes_lines.append(f" • Case 2 (Upper Middle): {'✔ PASS' if c2_pass else '✖ FAIL (Origin Failed)'}")
-    notes_lines.append("   👉 Correct Rule: Red wire MUST originate at Middle Coil (wiring verified via origin).\n")
-
-    notes_lines.append(f" • Case 3 (Bottom Right): {'✔ PASS' if c3_pass else '✖ FAIL (Red is on Right)'}")
-    notes_lines.append("   👉 Correct Rule: Red wire MUST be on LEFT of Black wire.\n")
-
-    # 2. Origins
-    notes_lines.append("📍 WIRE ORIGIN CONNECTIONS:")
-    notes_lines.append(f" • Origin 1 (Bottom Left):  {'✔ PASS' if obl_pass else '✖ FAIL'}")
-    notes_lines.append("   👉 Correct Rule: Black wire enters Upper Socket, Red enters Lower Socket (Black above Red).\n")
-
-    notes_lines.append(f" • Origin 2 (Top Middle):   {'✔ PASS' if oum_pass else '✖ FAIL'}")
-    notes_lines.append("   👉 Correct Rule: Red wire connects to Middle Coil, Black wire to Rightmost Coil.\n")
-
-    notes_lines.append(f" • Origin 3 (Bottom Right): {'✔ PASS' if effective_origin3_pass else '✖ FAIL'}" + 
-                       (" [Verified via Arducam_ORIGIN Dedicated View]" if (orig3_grommet_pass and not raw_obr_pass) else ""))
-    notes_lines.append("   👉 Correct Rule: Red wire origin MUST be ABOVE Black wire origin.\n")
-
-    # 3. Dedicated Origin 3
-    notes_lines.append("🎯 DEDICATED ORIGIN 3 GROMMET (Arducam_ORIGIN):")
-    notes_lines.append(f" • Grommet Connection:    {'✔ PASS (Both Red & Black Wires Connected)' if orig3_grommet_pass else '✖ FAIL (Wire Missing at Grommet)'}")
-    notes_lines.append("   👉 Correct Rule: Both Red and Black wires MUST be present and connected to the grommet.\n")
+    # 2. Side View (Secondary Detection Model)
+    notes_lines.append("🎯 SIDE VIEW (Arducam_ORIGIN - Secondary Detection Model):")
+    notes_lines.append(f" • Side Detection Inspection: {'✔ PASS' if is_side_pass else '✖ FAIL'}")
+    side_lbls = orig3_res.get("detected_labels") or []
+    if side_lbls:
+        notes_lines.append(f" • Detections: {', '.join(side_lbls)}\n")
+    else:
+        notes_lines.append(" • Detections: None\n")
 
     # Save snapshot images to Result/Pass or Result/Fail
     target_folder = "Pass" if combined_pass else "Fail"
@@ -7534,29 +7992,62 @@ def inspect_endpoint():
     if orig3_img_bgr is not None:
         cv2.imwrite(os.path.join(result_dir, f"{prefix}_raw_orig3.jpg"), orig3_img_bgr)
 
-    # Collect concise failure summary for Excel
-    fail_items = []
-    if not obl_pass: fail_items.append("Origin 1 (BL)")
-    if not oum_pass: fail_items.append("Origin 2 (UM Coil)")
-    if not effective_origin3_pass: fail_items.append("Origin 3 (BR/Grommet)")
-    if not c1_pass: fail_items.append("Wire Case 1 (BL)")
-    if not c2_pass: fail_items.append("Wire Case 2 (UM)")
-    if not c3_pass: fail_items.append("Wire Case 3 (BR)")
-    notes_summary = "All checks passed" if combined_pass else f"Failed: {', '.join(fail_items)}"
+    # Collect structured failure summary for Excel and UI
+    # When the model runs and results into Pass then do nothing
+    # and if it fails then in an fstring store what all cases have failed
+    if combined_pass:
+        # Pass -> do nothing
+        failed_cases_str = ""
+        notes_summary = "All checks passed"
+        fail_details = []
+    else:
+        # Fail -> in an fstring store what all cases have failed
+        failed_cases = []
+        fail_details = list(top_res.get("fail_details") or [])
+
+        if not is_side_pass:
+            failed_cases.append("Origin 3 (Grommet)")
+            fail_details.append({
+                "item": "Origin 3 (Grommet)",
+                "reason": "Origin 3 grommet not detected in side view"
+            })
+        if not obl_pass:
+            failed_cases.append("Origin 1 (BL)")
+        if not oum_pass:
+            failed_cases.append("Origin 2 (UM)")
+        if not raw_obr_pass:
+            failed_cases.append("Origin 3 (BR Top)")
+        if not c1_pass:
+            failed_cases.append("Case 1 (BL)")
+        if not c2_pass:
+            failed_cases.append("Case 2 (UM)")
+        if not c3_pass:
+            failed_cases.append("Case 3 (BR)")
+
+        seen = set()
+        failed_cases_unique = [c for c in failed_cases if not (c in seen or seen.add(c))]
+        failed_list = ", ".join(failed_cases_unique)
+        failed_cases_str = f"Failed Cases: {failed_list}"
+        notes_summary = failed_cases_str
+        print(f"[MODEL INFERENCE] {failed_cases_str}")
+        notes_lines.append(f"❌ {failed_cases_str}\n")
+
+    fail_items = [f"{d['item']}: {d['reason']}" for d in fail_details]
 
     # 4. Log to Excel Sheet & CSV
     excel_record = {
         "timestamp": now_str,
         "device_id": serial_no,
         "combined_pass": combined_pass,
-        "orig3_grommet_pass": orig3_grommet_pass,
+        "orig3_grommet_pass": is_side_pass,
         "obl_pass": obl_pass,
         "oum_pass": oum_pass,
-        "obr_pass": effective_origin3_pass,
+        "obr_pass": raw_obr_pass,
         "c1_pass": c1_pass,
         "c2_pass": c2_pass,
         "c3_pass": c3_pass,
         "notes_summary": notes_summary,
+        "failed_cases": "" if combined_pass else failed_cases_str,
         "saved_folder": f"Result/{target_folder}"
     }
     log_to_excel(excel_record)
@@ -7685,6 +8176,10 @@ def inspect_endpoint():
                     or pms_response.get("request_status")
                     or "PMS rejected the ReportStore request."
                 )
+                fail_details.append({
+                    "item": "PMS Server (ReportStore)",
+                    "reason": f"Rejected by server: {response_payload['pms_rejection_reason']}"
+                })
 
             else:
                 # No matching PMS response after the retry attempts.
@@ -7719,14 +8214,20 @@ def inspect_endpoint():
     response_payload["results"] = {
         "obl_pass": obl_pass,
         "oum_pass": oum_pass,
-        "obr_pass": effective_origin3_pass,
+        "obr_pass": is_side_pass,
         "raw_obr_pass": raw_obr_pass,
         "c1_pass": c1_pass,
         "c2_pass": c2_pass,
         "c3_pass": c3_pass,
-        "orig3_grommet_pass": orig3_grommet_pass,
-        "orig2_grommet_pass": orig3_grommet_pass
+        "orig3_grommet_pass": is_side_pass,
+        "orig2_grommet_pass": is_side_pass
     }
+    response_payload["fail_details"] = fail_details
+    response_payload["fail_items"] = [f"{d['item']}: {d['reason']}" for d in fail_details]
+    response_payload["failed_cases"] = failed_cases_str if not combined_pass else ""
+    response_payload["failed_cases_str"] = failed_cases_str if not combined_pass else ""
+    response_payload["is_top_pass"] = is_top_pass
+    response_payload["is_side_pass"] = is_side_pass
     response_payload["device_id"] = serial_no
     response_payload["raw_qr"] = device_id
     response_payload["serial_no"] = serial_no
