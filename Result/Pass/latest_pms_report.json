@@ -1,28 +1,22 @@
 {
     "CmdType": "ReportStore",
     "UtcRequest_ID": "1234",
-    "Device_MAC_ID": "88:AE:DD:B6:03:5D",
+    "Device_MAC_ID": "D0:F4:05:FD:5D:C8",
     "TableName": "NEW ",
     "ColumnsName": [
         {
-            "APoNumberId": "56",
-            "RowCreationTimeStamp": 1793433554156,
-            "RowUpdationTimeStamp": 1793433554156,
-            "WifiMasterMacid": "88:AE:DD:B6:03:5D",
+            "APoNumberId": "17",
+            "RowCreationTimeStamp": 1793437873291,
+            "RowUpdationTimeStamp": 1793437873291,
+            "WifiMasterMacid": "D0:F4:05:FD:5D:C8",
             "WifiDate": "31-October-2026, Saturday",
-            "WifiTime": "13:29:14",
+            "WifiTime": "14:41:13",
             "PlcJigProductionLineNo": "123",
-            "DeviceSerialNo": "TEST_PASS_001",
-            "TaktTime": 0.287,
+            "DeviceSerialNo": "001260101010112105100002607001973",
+            "TaktTime": 19.414,
             "JigUid": "456",
             "wiringtInspection": 1,
-            "PV": 1,
-            "Coil": 1,
-            "AC1": 1,
-            "AC2": 1,
-            "PvCase": 1,
-            "CoilCase": 1,
-            "AcCase": 1
+            "Remark": ""
         }
     ]
 }

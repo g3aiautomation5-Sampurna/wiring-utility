@@ -1,28 +1,22 @@
 {
     "CmdType": "ReportStore",
     "UtcRequest_ID": "1234",
-    "Device_MAC_ID": "88:AE:DD:B6:03:5D",
+    "Device_MAC_ID": "D0:F4:05:FD:5D:C8",
     "TableName": "NEW ",
     "ColumnsName": [
         {
             "APoNumberId": "17",
-            "RowCreationTimeStamp": 1793434209835,
-            "RowUpdationTimeStamp": 1793434209835,
-            "WifiMasterMacid": "88:AE:DD:B6:03:5D",
+            "RowCreationTimeStamp": 1793437970792,
+            "RowUpdationTimeStamp": 1793437970792,
+            "WifiMasterMacid": "D0:F4:05:FD:5D:C8",
             "WifiDate": "31-October-2026, Saturday",
-            "WifiTime": "13:40:10",
+            "WifiTime": "14:42:50",
             "PlcJigProductionLineNo": "123",
             "DeviceSerialNo": "001260101010112105100002607001973",
-            "TaktTime": 469.885,
+            "TaktTime": 19.29,
             "JigUid": "456",
             "wiringtInspection": 0,
-            "PV": 0,
-            "Coil": 1,
-            "AC1": 1,
-            "AC2": 1,
-            "PvCase": 1,
-            "CoilCase": 1,
-            "AcCase": 1
+            "Remark": "Failed Cases: Origin 1 (BL)"
         }
     ]
 }
